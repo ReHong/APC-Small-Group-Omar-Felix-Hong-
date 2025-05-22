@@ -49,11 +49,14 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\sqlite3.def">
+    <None Include="..\assignment3.db">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\sqlite3.def">
+      <Filter>Source Files</Filter>
+    </None>
     <None Include="..\sqlite3.dll">
-      <Filter>Resource Files</Filter>
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

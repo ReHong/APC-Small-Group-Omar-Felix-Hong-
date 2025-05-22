@@ -5,11 +5,14 @@
 #include "Student.h"
 #include "Instructor.h"
 #include "Admin.h"
+#include "sqlite3.h"
 
 using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
+using std::ofstream;  //Write to file
+using std::ifstream;  //read data from a file
 
 int main() {
 	
@@ -22,7 +25,7 @@ int main() {
 	Student student = Student("First", "Last", 1);
 	Admin admin = Admin("First", "last", 2);
 	Instructor instructor = Instructor("First", "Last", 3);
-	
+
 	cout << admin.add_course() << endl;
 	cout << admin.remove_course() << endl;
 	cout << admin.add_user() << endl;
