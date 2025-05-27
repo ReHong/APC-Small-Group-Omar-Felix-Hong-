@@ -8,6 +8,8 @@ using std::cout;
 using std::endl;
 using std::string;
 
+
+
 class User
 {
 
@@ -26,8 +28,11 @@ public:
 	string show_first();
 	string show_last();
 	int show_ID();
+	void set_ID(int ID); 
+	void set_first(string first);
+	void set_last(string last);
 
-	//Destructor
+	//Destructors
 
 	~User();
 
