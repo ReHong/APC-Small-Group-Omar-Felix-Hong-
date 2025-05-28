@@ -22,6 +22,6 @@ class Course
 	int credits;
 
 public:
-
+	Course(string first[], string last[], int ID[], string e[], string t[], string o[]);
 };
 

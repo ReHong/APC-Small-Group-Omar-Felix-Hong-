@@ -5,8 +5,9 @@
 #include "Student.h"
 
 
-Admin::Admin(string first, string last, int ID, string e) : User(first, last, ID, e) {
-
+Admin::Admin(string first, string last, int ID, string e, string t, string o) : User(first, last, ID, e) {
+	title = t;
+	office = o;
 }
 
 //Method

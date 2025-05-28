@@ -3,8 +3,11 @@
 #include "Student.h"
 #include "Admin.h"
 
-Instructor::Instructor(string first, string last, int ID, string e) : User(first, last, ID, e) {
-
+Instructor::Instructor(string first, string last, int ID, string e, string t, int y, string d) : User(first, last, ID, e) 
+{
+	title = t;
+	YoH = y;
+	department = d;
 }
 
 //Method

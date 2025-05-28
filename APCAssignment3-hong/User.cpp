@@ -8,13 +8,21 @@ using std::cout;
 using std::endl;
 using std::string;
 
-User::User(string first, string last, int ID) {
+User::User()
+{
+	first_name = "Tester";
+	last_name = "Bot";
+	ID_num = 9999;
+	email = "bot@bot.com";
+}
 
-
+User::User(string first, string last, int ID, string E) {
+	
 	//Attributes
 	first_name = first;
 	last_name = last;
 	ID_num = ID;
+	email = E;
 
 }
 
