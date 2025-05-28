@@ -11,7 +11,7 @@ class Instructor :
 	string department;
 
 public:
-	Instructor(string first, string last, int ID, string e);
+	Instructor(string first, string last, int ID, string e, string t, int y, string d);
 	string print_schedule();
 	string print_class();
 	string search_course();

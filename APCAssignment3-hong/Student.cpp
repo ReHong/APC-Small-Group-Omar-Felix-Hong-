@@ -3,8 +3,9 @@
 #include "Admin.h"
 #include "Instructor.h" 
 
-Student::Student(string first, string last, int ID, string e) : User(first,last,ID,e) {
-
+Student::Student(string first, string last, int ID, string e, int g, string m) : User(first,last,ID,e) {
+	gradYear = g;
+	major = m;
 }
 
 //Method

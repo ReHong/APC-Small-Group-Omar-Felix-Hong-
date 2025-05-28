@@ -10,7 +10,7 @@ class Student :
 	string major;
 
 public:
-	Student(string first, string last, int ID, string e);
+	Student(string first, string last, int ID, string e, int g, string m);
 	string search_course();
 	string add_course();
 	string drop_course();

@@ -10,7 +10,7 @@ class Admin :
 	string office;
 
 public:
-	Admin(string first, string last, int ID, string e);
+	Admin(string first, string last, int ID, string e, string t, string o);
 	string add_course();
 	string remove_course();
 	string add_user();
