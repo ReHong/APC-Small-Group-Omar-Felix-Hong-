@@ -55,10 +55,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assignment3.db">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\sqlite3.dll">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="programmer.db">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="assignment3.db">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
