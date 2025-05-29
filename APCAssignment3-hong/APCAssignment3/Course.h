@@ -22,6 +22,15 @@ class Course
 	int credits;
 
 public:
-	Course(string first[], string last[], int ID[], string e[], string t[], string o[]);
+	Course(int C[], string tit[], string dep[], string t[], string D[], string s[], int y, int c);
+	int show_CRN();
+	string show_title();
+	string show_department();
+	string show_time();
+	string show_DoW();
+	string show_semester();
+	int show_year();
+	int show_credits();
+
 };
 

@@ -40,27 +40,25 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 
 int main(int argc, char** argv)
 {
+	const char* dir = "assignment3.db";
+
 	sqlite3* DB;
 
-	/*******************************************************************
-	 Creating a table
-	 Create a string then pass the string into the sqlite3_exec function
-	********************************************************************/
-	string table = "CREATE TABLE PROGRAMMER("
+	string tableADMIN = "CREATE TABLE IF NOT EXISTS ADMIN(" //database Admin table
 		"ID INTEGER PRIMARY KEY, "
 		"NAME TEXT NOT NULL, "
 		"SURNAME TEXT NOT NULL, "
-		"BIRTHYEAR INTEGER NOT NULL); ";
-
+		"TITLE TEXT NOT NULL,"
+		"OFFICE TEXT NOT NULL,"
+		"EMAIL TEXT NOT NULL); ";
+	
 	int exit = 0;
 
-	exit = sqlite3_open("programmer.db", &DB);			//open the database
+	exit = sqlite3_open("assignment3.db", &DB);			//open the database
 
 	char* messageError;
 
-	// execute the create table command
-	// sqlite3_exec( pointer to database file, string for sql command, callback function (used to respond to queries, not used here), input to callback, error message address)
-	exit = sqlite3_exec(DB, table.c_str(), NULL, 0, &messageError);
+	exit = sqlite3_exec(DB, tableADMIN.c_str(), nullptr, nullptr, &messageError);
 
 	if (exit != SQLITE_OK)
 	{
@@ -70,31 +68,66 @@ int main(int argc, char** argv)
 	else
 		cout << "Table created Successfully" << std::endl;
 
+	string tableInstructor = "CREATE TABLE IF NOT EXISTS INSTRUCTOR(" //database Instructor table
+		"ID INTEGER PRIMARY KEY, "
+		"NAME TEXT NOT NULL, "
+		"SURNAME TEXT NOT NULL, "
+		"TITLE TEXT NOT NULL,"
+		"HIREYEAR INTEGER NOT NULL,"
+		"DEPT TEXT NOT NULL,"
+		"EMAIL TEXT NOT NULL); ";
 
-	/*******************************************************************
-	 Inserting values into a table.
-	 Create a string then pass the string into the sqlite3_exec function
-	********************************************************************/
-	// hard-code (push) a few values into the database - NOTE you can create a single string with multiple INSERT commands
-	string sql("INSERT INTO PROGRAMMER VALUES(1, 'ADA', 'LOVELACE', 1815);"
-		"INSERT INTO PROGRAMMER VALUES(2, 'GRACE', 'HOPPER', 1906);"
-		"INSERT INTO PROGRAMMER VALUES(3, 'MARY KENNETH', 'KELLER', 1913);"
-		"INSERT INTO PROGRAMMER VALUES(4, 'EVELYN', 'BOYD GRANVILLE', 1924);"
-		"INSERT INTO PROGRAMMER VALUES(5, 'CAROL', 'SHAW', 1955);"
-	);
-
-	// execute the command
-	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	exit = sqlite3_exec(DB, tableInstructor.c_str(), nullptr, nullptr, &messageError);
 
 	if (exit != SQLITE_OK)
 	{
-		std::cerr << "Error Insert" << std::endl;
+		std::cerr << "Error Create Table" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
-		std::cout << "Records created Successfully!" << std::endl;
+		cout << "Table created Successfully" << std::endl;
 
+	string tableStudent = "CREATE TABLE IF NOT EXISTS STUDENT("  //database Student table
+		"ID INTEGER PRIMARY KEY, "
+		"NAME TEXT NOT NULL, "
+		"SURNAME TEXT NOT NULL, "
+		"GRADYEAR INTEGER NOT NULL,"
+		"MAJOR TEXT NOT NULL,"
+		"EMAIL TEXT NOT NULL); ";
 
+	exit = sqlite3_exec(DB, tableStudent.c_str(), nullptr, nullptr, &messageError);
+
+	if (exit != SQLITE_OK)
+	{
+		std::cerr << "Error Create Table" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		cout << "Table created Successfully" << std::endl;
+
+	//Admin, Instructor, Student addition (as backup)
+	
+	string sql("INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
+		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
+
+		"INSERT INTO INSTRUCTOR VALUES(20001, 'Joseph', 'Fourier', 'Full Prof.', 1820, 'BSEE', 'fourierj');"
+		"INSERT INTO INSTRUCTOR VALUES(20002, 'Nelson', 'Patrick', 'Full Prof.', 1994, 'HUSS', 'patrickn');"
+		"INSERT INTO INSTRUCTOR VALUES(20003, 'Galileo', 'Galilei', 'Full Prof.', 1600, 'BSAS', 'galileig');"
+		"INSERT INTO INSTRUCTOR VALUES(20004, 'Alan', 'Turing', 'Associate Prof.', 1940, 'BSCO', 'turinga');"
+		"INSERT INTO INSTRUCTOR VALUES(20005, 'Katie', 'Bouman', 'Associate Prof.', 2019, 'BCOS', 'boumank');"
+		"INSERT INTO INSTRUCTOR VALUES(20006, 'Daniel', 'Bernouli', 'Associate Prof.', 1760, 'BSME', 'bernoulid');"
+
+		"INSERT INTO STUDENT VALUES(10001, 'Isaac', 'Newton', 1668, 'BSAS', 'newtoni');"
+		"INSERT INTO STUDENT VALUES(10002, 'Marie', 'Curie', 1903, 'BSAS', 'curiem');"
+		"INSERT INTO STUDENT VALUES(10003, 'Nikola', 'Tesla', 1878, 'BSEE', 'teslan');"
+		"INSERT INTO STUDENT VALUES(10004, 'Thomas', 'Edison', 1879, 'BSEE', 'edisont');"
+		"INSERT INTO STUDENT VALUES(10005, 'John', 'von Neumann', 1923, 'BSCO', 'vonneumanj');"
+		"INSERT INTO STUDENT VALUES(10006, 'Grace', 'Hopper', 1928, 'BCOS', 'hopperg');"
+		"INSERT INTO STUDENT VALUES(10007, 'Mae', 'Jemison', 1981, 'BSCH', 'jamisonm');"
+		"INSERT INTO STUDENT VALUES(10008, 'Mark', 'Dean', 1979, 'BSCO', 'deanm');"
+		"INSERT INTO STUDENT VALUES(10009, 'Michael', 'Faraday', 1812, 'BSAS', 'faradaym');"
+		"INSERT INTO STUDENT VALUES(10010, 'Ada', 'Lovelace', 1832, 'BCOS', 'lovelacea');"
+	);
 
 	/***********************************************
 	 print all data in the table with SELECT * FROM
@@ -108,43 +141,30 @@ int main(int argc, char** argv)
 	sqlite3_exec(DB, query.c_str(), callback, NULL, NULL);
 
 
+	/*
+	Big note : considering we have the database involved heavily for program
+	i.e. storage, functionality, classes
+	We should assume that the login portion or creating the User b4 the actual program 
+	involves pulling straight from the database from either Admin, Instructor, or Student
+	then between the case statements, a new user will be created/pulled based on 
+	that class object through a class pointer storage.
 
-	/**********************************************
-	 adding from a file or user input
-	 get input --> create string --> call command
-	**********************************************/
-	string fname, lname;
-	string year;			//year is an integer in the database table, but we beed to create a string to pass in to the sql command
-	cout << endl << "Enter the first name, last name, and birth year of a famous programmer separated by spaces: ";
-	cin >> fname >> lname >> year;
-	cout << endl;
+	Admin(string first, string last, int ID, string e, string t, string o);
+	*/
+	
+	//test case for using the methods for sqlite
+	Admin test("Admin", "Astrator", 1, "astratora", "trap", "reddit");
 
-	// Adding from a file or a user input means some string additions (see below)
-	string UID = "6";
-	string userInput("INSERT INTO PROGRAMMER VALUES(" + UID + ",'" + fname + "','" + lname + "'," + year + ");");
+	//add student 1
+	string userInput(test.add_user(3));
 
 	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL);
 
+	string userInput2(test.add_user(3));
 
+	//add student 2
+	exit = sqlite3_exec(DB, userInput2.c_str(), callback, NULL, NULL);
 
-	/***********************************
-	 refining queries --> SELECT example
-	 create string --> call command
-	***********************************/
-	string surname = "SELECT SURNAME FROM PROGRAMMER WHERE BIRTHYEAR < 1950;";
-	cout << endl << "SQL Command: " << surname << endl;
-
-	exit = sqlite3_exec(DB, surname.c_str(), callback, NULL, &messageError);
-
-	query = "SELECT * FROM PROGRAMMER;";
-
-	cout << endl << query << endl;		//print the string to screen
-
-	// you need the callback function this time since there could be multiple rows in the table
-	sqlite3_exec(DB, query.c_str(), callback, NULL, NULL);
-
-
-	// other possible commands from SQL (update, delete, etc.), try those. Same concept, create string then call command
 
 	sqlite3_close(DB);
 	return 0;

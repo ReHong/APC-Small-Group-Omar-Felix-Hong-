@@ -144,8 +144,9 @@
     <ClInclude Include="Course.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assignment3.db" />
     <None Include="..\sqlite3.dll" />
+    <None Include="assignment3.db" />
+    <None Include="programmer.db" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
