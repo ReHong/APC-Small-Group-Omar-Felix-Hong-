@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 		"TITLE TEXT NOT NULL,"
 		"OFFICE TEXT NOT NULL,"
 		"EMAIL TEXT NOT NULL); ";
-	
+
 	int exit = 0;
 
 	exit = sqlite3_open("assignment3.db", &DB);			//open the database
@@ -105,8 +105,32 @@ int main(int argc, char** argv)
 	else
 		cout << "Table created Successfully" << std::endl;
 
+	sqlite3_exec(DB, "DROP TABLE IF EXISTS COURSE;", nullptr, nullptr, &messageError);
+
+	string tableCourse = "CREATE TABLE COURSE(" //database Course table
+		"CRN INTEGER PRIMARY KEY, "
+		"TITLE TEXT NOT NULL, "
+		"DEPARTMENT TEXT NOT NULL, "
+		"TIMES TEXT NOT NULL,"
+		"DofW TEXT NOT NULL,"
+		"SEMESTER TEXT NOT NULL,"
+		"YEAR INTEGER NOT NULL,"
+		"CREDITS INTEGER NOT NULL); ";
+
+	exit = sqlite3_exec(DB, tableCourse.c_str(), NULL, 0, &messageError);
+
+	if (exit != SQLITE_OK)
+	{
+		std::cerr << "Error Create Table" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+		cout << "Table created Successfully" << std::endl;
+
 	//Admin, Instructor, Student addition (as backup)
-	
+	//Create Course List (yes I stopped caring at this point)
+
+	/*
 	string sql("INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
 		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
 
@@ -127,13 +151,44 @@ int main(int argc, char** argv)
 		"INSERT INTO STUDENT VALUES(10008, 'Mark', 'Dean', 1979, 'BSCO', 'deanm');"
 		"INSERT INTO STUDENT VALUES(10009, 'Michael', 'Faraday', 1812, 'BSAS', 'faradaym');"
 		"INSERT INTO STUDENT VALUES(10010, 'Ada', 'Lovelace', 1832, 'BCOS', 'lovelacea');"
+
+		//main issue is that this is not being used
+		"INSERT INTO COURSE VALUES(50001, 'Engrish', 'BSEE', '8:00 AM', 'M W F', 'Fall', 2022, 4);"
+		"INSERT INTO COURSE VALUES(50002, 'Matting', 'HUSS', '10:00 AM', 'M W F', 'Winter', 2022, 4);"
+		"INSERT INTO COURSE VALUES(50003, 'Blow Ups', 'BSAS', '10:00 AM', 'M W F', 'Fall', 2022, 4);"
+		"INSERT INTO COURSE VALUES(50004, 'Torture Rooms', 'BSCO', '8:00 AM', 'M W F', 'Winter', 2022, 3);"
+		"INSERT INTO COURSE VALUES(50005, 'Femboyant Architypes', 'BCOS', '8:00 AM', 'M W F', 'Fall', 2022, 3);"
+		"INSERT INTO COURSE VALUES(50006, 'Eric Femboy Crisis Hotline', 'BSME', '7:00 PM', 'M W F', 'Winter', 2022, 2);"
 	);
+	*/
+
+	string sql(
+		//main issue is that this is not being used
+		"INSERT INTO COURSE VALUES(50001, 'Engrish', 'BSEE', '8:00 AM', 'M W F', 'Fall', 2022, 4);"
+		"INSERT INTO COURSE VALUES(50002, 'Matting', 'HUSS', '10:00 AM', 'M W F', 'Winter', 2022, 4);"
+		"INSERT INTO COURSE VALUES(50003, 'Blow Ups', 'BSAS', '10:00 AM', 'M W F', 'Fall', 2022, 4);"
+		"INSERT INTO COURSE VALUES(50004, 'Torture Rooms', 'BSCO', '8:00 AM', 'M W F', 'Winter', 2022, 3);"
+		"INSERT INTO COURSE VALUES(50005, 'Femboyant Architypes', 'BCOS', '8:00 AM', 'M W F', 'Fall', 2022, 3);"
+		"INSERT INTO COURSE VALUES(50006, 'Eric Femboy Crisis Hotline', 'BSME', '7:00 PM', 'M W F', 'Winter', 2022, 2);"
+	);
+
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+
+	if (exit != SQLITE_OK)
+	{
+		std::cerr << "Error Data Fail" << std::endl;
+		sqlite3_free(messageError);
+	}
+	else
+	{
+		cout << "Data Successfully Inserted" << std::endl;
+	}
 
 	/***********************************************
 	 print all data in the table with SELECT * FROM
 	 create string with query then execute
 	 **********************************************/
-	string query = "SELECT * FROM PROGRAMMER;";
+	string query = "SELECT * FROM PROGRAMMER;"; //used later
 
 	cout << endl << query << endl;		//print the string to screen
 
@@ -142,16 +197,19 @@ int main(int argc, char** argv)
 
 
 	/*
+
 	Big note : considering we have the database involved heavily for program
 	i.e. storage, functionality, classes
-	We should assume that the login portion or creating the User b4 the actual program 
+	We should assume that the login portion or creating the User b4 the actual program
 	involves pulling straight from the database from either Admin, Instructor, or Student
-	then between the case statements, a new user will be created/pulled based on 
-	that class object through a class pointer storage.
+	then between the case statements, a new user will be created/pulled based on
+	that class object through a class pointer storage. Otherwise loop back to login because incorrect
+	information
 
 	Admin(string first, string last, int ID, string e, string t, string o);
+
 	*/
-	
+
 	//test case for using the methods for sqlite
 	Admin test("Admin", "Astrator", 1, "astratora", "trap", "reddit");
 
@@ -160,13 +218,49 @@ int main(int argc, char** argv)
 
 	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL);
 
+	//add student 2
 	string userInput2(test.add_user(3));
 
-	//add student 2
 	exit = sqlite3_exec(DB, userInput2.c_str(), callback, NULL, NULL);
 
+	//remove Instructor + Updating Admin
+	//suppossed remove
+	//string userInput2(test.remove_user(2));
+
+	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
+	int id;
+	const char* sqlD = "DELETE FROM INSTRUCTOR WHERE ID = ?;"; //a way to delete and remove
+	cout << "Delete Instructor 1-6: ";
+	cin >> id;
+	id = id + 20000;
+
+	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
+	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
+	sqlite3_step(stmt); //run it
+	sqlite3_finalize(stmt); //save 
+	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
+
+	//Update
+	const char* sqlU = "UPDATE ADMIN SET TITLE = ? WHERE ID = ?;"; //a way to update one line
+
+	string nameChange;
+
+	getline(cin, nameChange);
+	cout << "Change Admin Title: ";
+	getline(cin, nameChange);
+
+	cout << "Admin 1 or 2: ";
+	cin >> id;
+	id = id + 30000;
+
+	sqlite3_prepare_v2(DB, sqlU, -1, &stmt, NULL); //preparing the update
+	sqlite3_bind_text(stmt, 1, nameChange.c_str(), -1, SQLITE_STATIC); //change name 
+	sqlite3_bind_int(stmt, 2, id); //change name of that row that matches with the ID number
+	sqlite3_step(stmt); //run it
+	sqlite3_finalize(stmt); //save 
 
 	sqlite3_close(DB);
+
 	return 0;
 }
 
