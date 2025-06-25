@@ -35,6 +35,10 @@ public:
 	void set_first(string first);
 	void set_last(string last);
 	void set_email(string e);
+
+	string print_course();
+	string search_courseD();
+	string search_courseP();
 	//Destructors
 
 	~User();

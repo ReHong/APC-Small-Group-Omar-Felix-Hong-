@@ -18,13 +18,9 @@ public:
 	string add_user(int User);
 	string remove_user(int User);
 
-
-
-	string search_course();
-	string print_course();
-	string search_class();
-	string print_class(); 
-
+	string print_class();
+	string link_instructor();
+	string link_student();
 	//Destructor
 
 	~Admin(); 
