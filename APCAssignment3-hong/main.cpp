@@ -55,6 +55,8 @@ int main(int argc, char** argv)
 	int exit = 0;
 
 	exit = sqlite3_open("assignment3.db", &DB);			//open the database
+	
+	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
 
 	char* messageError;
 
@@ -107,15 +109,20 @@ int main(int argc, char** argv)
 
 	sqlite3_exec(DB, "DROP TABLE IF EXISTS COURSE;", nullptr, nullptr, &messageError);
 
-	string tableCourse = "CREATE TABLE COURSE(" //database Course table
+	string tableCourse = "CREATE TABLE IF NOT EXISTS COURSE("
 		"CRN INTEGER PRIMARY KEY, "
 		"TITLE TEXT NOT NULL, "
 		"DEPARTMENT TEXT NOT NULL, "
-		"TIMES TEXT NOT NULL,"
-		"DofW TEXT NOT NULL,"
-		"SEMESTER TEXT NOT NULL,"
-		"YEAR INTEGER NOT NULL,"
-		"CREDITS INTEGER NOT NULL); ";
+		"TIMES TEXT NOT NULL, "
+		"TIMESTART INTEGER NOT NULL, "
+		"TIMEEND INTEGER NOT NULL, "
+		"DofW TEXT NOT NULL, "
+		"SEMESTER TEXT NOT NULL, "
+		"YEAR INTEGER NOT NULL, "
+		"CREDITS INTEGER NOT NULL, "
+		"INSTRUCTOR_ID INTEGER, "
+		"FOREIGN KEY (INSTRUCTOR_ID) REFERENCES INSTRUCTOR(ID)"
+		");";
 
 	exit = sqlite3_exec(DB, tableCourse.c_str(), NULL, 0, &messageError);
 
@@ -125,51 +132,97 @@ int main(int argc, char** argv)
 		sqlite3_free(messageError);
 	}
 	else
+	{
 		cout << "Table created Successfully" << std::endl;
-
-	//Admin, Instructor, Student addition (as backup)
-	//Create Course List (yes I stopped caring at this point)
+	}
 
 	/*
 	string sql("INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
 		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
 
 		"INSERT INTO INSTRUCTOR VALUES(20001, 'Joseph', 'Fourier', 'Full Prof.', 1820, 'BSEE', 'fourierj');"
-		"INSERT INTO INSTRUCTOR VALUES(20002, 'Nelson', 'Patrick', 'Full Prof.', 1994, 'HUSS', 'patrickn');"
-		"INSERT INTO INSTRUCTOR VALUES(20003, 'Galileo', 'Galilei', 'Full Prof.', 1600, 'BSAS', 'galileig');"
+		"INSERT INTO INSTRUCTOR VALUES(20002, 'Nelson', 'Patrick', 'Full Prof.', 1994, 'ENGL', 'patrickn');"
+		"INSERT INTO INSTRUCTOR VALUES(20003, 'Galileo', 'Galilei', 'Full Prof.', 1600, 'SCIE', 'galileig');"
 		"INSERT INTO INSTRUCTOR VALUES(20004, 'Alan', 'Turing', 'Associate Prof.', 1940, 'BSCO', 'turinga');"
 		"INSERT INTO INSTRUCTOR VALUES(20005, 'Katie', 'Bouman', 'Associate Prof.', 2019, 'BCOS', 'boumank');"
-		"INSERT INTO INSTRUCTOR VALUES(20006, 'Daniel', 'Bernouli', 'Associate Prof.', 1760, 'BSME', 'bernoulid');"
+		"INSERT INTO INSTRUCTOR VALUES(20006, 'Daniel', 'Bernouli', 'Associate Prof.', 1760, 'MECH', 'bernoulid');"
+		"INSERT INTO INSTRUCTOR VALUES(20007, 'Joseph', 'Stalin', 'Full Prof.', 1940, 'ENGL', 'stalinj');"//
+		"INSERT INTO INSTRUCTOR VALUES(20008, 'Keith', 'Zengel', 'Full Prof.', 1994, 'SCIE', 'zengelk');"
+		"INSERT INTO INSTRUCTOR VALUES(20009, 'Estaban', 'Carlos', 'Full Prof.', 1989, 'ELEC', 'carlose');"
+		"INSERT INTO INSTRUCTOR VALUES(20010, 'Alan', 'Fortner', 'Associate Prof.', 1982, 'BSCO', 'fortnera');"
+		"INSERT INTO INSTRUCTOR VALUES(20011, 'Katie', 'Pernelli', 'Associate Prof.', 2009, 'MATH', 'pernellik');"
+		"INSERT INTO INSTRUCTOR VALUES(20012, 'Daniel', 'Astray', 'Associate Prof.', 2001, 'COMP', 'astrayd');"
+		"INSERT INTO INSTRUCTOR VALUES(20013, 'Hopner', 'Jones', 'Full Prof.', 2002, 'COMP', 'hopnerj');"
+		"INSERT INTO INSTRUCTOR VALUES(20014, 'Nell', 'Gibs', 'Full Prof.', 1978, 'ENGL', 'gibsn');"
+		"INSERT INTO INSTRUCTOR VALUES(20015, 'Eathon', 'Notner', 'Full Prof.', 1987, 'MATH', 'notnere');"
 
-		"INSERT INTO STUDENT VALUES(10001, 'Isaac', 'Newton', 1668, 'BSAS', 'newtoni');"
-		"INSERT INTO STUDENT VALUES(10002, 'Marie', 'Curie', 1903, 'BSAS', 'curiem');"
-		"INSERT INTO STUDENT VALUES(10003, 'Nikola', 'Tesla', 1878, 'BSEE', 'teslan');"
-		"INSERT INTO STUDENT VALUES(10004, 'Thomas', 'Edison', 1879, 'BSEE', 'edisont');"
-		"INSERT INTO STUDENT VALUES(10005, 'John', 'von Neumann', 1923, 'BSCO', 'vonneumanj');"
-		"INSERT INTO STUDENT VALUES(10006, 'Grace', 'Hopper', 1928, 'BCOS', 'hopperg');"
-		"INSERT INTO STUDENT VALUES(10007, 'Mae', 'Jemison', 1981, 'BSCH', 'jamisonm');"
-		"INSERT INTO STUDENT VALUES(10008, 'Mark', 'Dean', 1979, 'BSCO', 'deanm');"
-		"INSERT INTO STUDENT VALUES(10009, 'Michael', 'Faraday', 1812, 'BSAS', 'faradaym');"
-		"INSERT INTO STUDENT VALUES(10010, 'Ada', 'Lovelace', 1832, 'BCOS', 'lovelacea');"
+		"INSERT INTO STUDENT VALUES(10001, 'Isaac', 'Newton', 1668, 'SCIE', 'newtoni');"
+		"INSERT INTO STUDENT VALUES(10002, 'Marie', 'Curie', 1903, 'ENGL', 'curiem');"
+		"INSERT INTO STUDENT VALUES(10003, 'Nikola', 'Tesla', 1878, 'ELEC', 'teslan');"
+		"INSERT INTO STUDENT VALUES(10004, 'Thomas', 'Edison', 1879, 'ELEC', 'edisont');"
+		"INSERT INTO STUDENT VALUES(10005, 'John', 'von Neumann', 1923, 'MATH', 'vonneumanj');"
+		"INSERT INTO STUDENT VALUES(10006, 'Grace', 'Hopper', 1928, 'SCIE', 'hopperg');"
+		"INSERT INTO STUDENT VALUES(10007, 'Mae', 'Jemison', 1981, 'ENGL', 'jamisonm');"
+		"INSERT INTO STUDENT VALUES(10008, 'Mark', 'Dean', 1979, 'MECH', 'deanm');"
+		"INSERT INTO STUDENT VALUES(10009, 'Michael', 'Faraday', 1824, 'SCIE', 'faradaym');"
+		"INSERT INTO STUDENT VALUES(10010, 'Ada', 'Lovelace', 1832, 'MECH', 'lovelacea');"
+		"INSERT INTO STUDENT VALUES(10011, 'Angela', 'Smith', 1832, 'ELEC', 'smitha');"
+		"INSERT INTO STUDENT VALUES(10012, 'David', 'Smith', 1832, 'ELEC', 'smithd');"
+		"INSERT INTO STUDENT VALUES(10013, 'John', 'Hopper', 1832, 'BCOS', 'hopperj');"
+		"INSERT INTO STUDENT VALUES(10014, 'Samuel', 'Jackson', 1832, 'BCOS', 'jacksons');"
+		"INSERT INTO STUDENT VALUES(10015, 'Chris', 'Le', 2022, 'BSCO', 'lec');"
+		"INSERT INTO STUDENT VALUES(10016, 'Johnathan', 'Kimbley', 2021, 'MATH', 'kimbleyj');"
+		"INSERT INTO STUDENT VALUES(10017, 'William', 'Flores', 2020, 'MECH', 'floresw');"
+		"INSERT INTO STUDENT VALUES(10018, 'Christian', 'Milord', 2022, 'COMP', 'milordc');"
+		"INSERT INTO STUDENT VALUES(10019, 'Jeury', 'Gonzalez', 2023, 'ARCH', 'gonzalez');"
+		"INSERT INTO STUDENT VALUES(10020, 'Hong', 'Luu', 2022, 'BSCO', 'luuh');"
 
 		//main issue is that this is not being used
-		"INSERT INTO COURSE VALUES(50001, 'Engrish', 'BSEE', '8:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50002, 'Matting', 'HUSS', '10:00 AM', 'M W F', 'Winter', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50003, 'Blow Ups', 'BSAS', '10:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50004, 'Torture Rooms', 'BSCO', '8:00 AM', 'M W F', 'Winter', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50005, 'Femboyant Architypes', 'BCOS', '8:00 AM', 'M W F', 'Fall', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50006, 'Eric Femboy Crisis Hotline', 'BSME', '7:00 PM', 'M W F', 'Winter', 2022, 2);"
+		"INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50003, 'English III', 'ENGL', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50004, 'Calculus I', 'MATH', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50005, 'Calculus II', 'MATH', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50006, 'Calculus III', 'MATH', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50007, 'Physics I', 'SCIE', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50008, 'Physics II', 'SCIE', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50009, 'Physics III', 'SCIE', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50010, 'Computer Programming I', 'COMP', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50011, 'Computer Programming II', 'COMP', '10:00 - 11:46 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50012, 'Computer Programming III', 'COMP', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50013, 'Mechanics ', 'MECH', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50014, 'Mechanics', 'MECH', '1:00 - 3:00 PM', 13, 15, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50015, 'Circuit Theory I', 'ELEC', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50016, 'Circuit Theory II', 'ELEC', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50017, 'Circuit Theory I Lab', 'ELEC', '8:00 - 10:00 AM', 8, 10, 'R', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50018, 'Circuit Theory II Lab', 'ELEC', '1:00 - 3:00 PM', 13, 15, 'R', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50019, 'Architecture Assembly', 'ARCH', '2:00 - 4:00 PM', 14, 16, 'T R', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50020, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'T R', 'Spring', 2022, 4, NULL);"
 	);
 	*/
 
 	string sql(
 		//main issue is that this is not being used
-		"INSERT INTO COURSE VALUES(50001, 'Engrish', 'BSEE', '8:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50002, 'Matting', 'HUSS', '10:00 AM', 'M W F', 'Winter', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50003, 'Blow Ups', 'BSAS', '10:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50004, 'Torture Rooms', 'BSCO', '8:00 AM', 'M W F', 'Winter', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50005, 'Femboyant Architypes', 'BCOS', '8:00 AM', 'M W F', 'Fall', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50006, 'Eric Femboy Crisis Hotline', 'BSME', '7:00 PM', 'M W F', 'Winter', 2022, 2);"
+		"INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50003, 'English III', 'ENGL', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50004, 'Calculus I', 'MATH', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50005, 'Calculus II', 'MATH', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50006, 'Calculus III', 'MATH', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50007, 'Physics I', 'SCIE', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50008, 'Physics II', 'SCIE', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50009, 'Physics III', 'SCIE', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50010, 'Computer Programming I', 'COMP', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50011, 'Computer Programming II', 'COMP', '10:00 - 11:46 AM', 10, 12, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50012, 'Computer Programming III', 'COMP', '2:00 - 4:00 PM', 14, 16, 'M W F', 'Fall', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50013, 'Mechanics ', 'MECH', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50014, 'Mechanics', 'MECH', '1:00 - 3:00 PM', 13, 15, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50015, 'Circuit Theory I', 'ELEC', '8:00 - 9:45 AM', 8, 10, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50016, 'Circuit Theory II', 'ELEC', '10:00 - 11:45 AM', 10, 12, 'M W F', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50017, 'Circuit Theory I Lab', 'ELEC', '8:00 - 10:00 AM', 8, 10, 'R', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50018, 'Circuit Theory II Lab', 'ELEC', '1:00 - 3:00 PM', 13, 15, 'R', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50019, 'Architecture Assembly', 'ARCH', '2:00 - 4:00 PM', 14, 16, 'T R', 'Spring', 2022, 4, NULL);"
+		"INSERT INTO COURSE VALUES(50020, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'T R', 'Spring', 2022, 4, NULL);"
 	);
 
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
@@ -184,82 +237,8 @@ int main(int argc, char** argv)
 		cout << "Data Successfully Inserted" << std::endl;
 	}
 
-	/***********************************************
-	 print all data in the table with SELECT * FROM
-	 create string with query then execute
-	 **********************************************/
-	string query = "SELECT * FROM PROGRAMMER;"; //used later
-
-	cout << endl << query << endl;		//print the string to screen
-
-	// you need the callback function this time since there could be multiple rows in the table
-	sqlite3_exec(DB, query.c_str(), callback, NULL, NULL);
-
-
-	/*
-
-	Big note : considering we have the database involved heavily for program
-	i.e. storage, functionality, classes
-	We should assume that the login portion or creating the User b4 the actual program
-	involves pulling straight from the database from either Admin, Instructor, or Student
-	then between the case statements, a new user will be created/pulled based on
-	that class object through a class pointer storage. Otherwise loop back to login because incorrect
-	information
-
-	Admin(string first, string last, int ID, string e, string t, string o);
-
-	*/
-
-	//test case for using the methods for sqlite
-	Admin test("Admin", "Astrator", 1, "astratora", "trap", "reddit");
-
-	//add student 1
-	string userInput(test.add_user(3));
-
-	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL);
-
-	//add student 2
-	string userInput2(test.add_user(3));
-
-	exit = sqlite3_exec(DB, userInput2.c_str(), callback, NULL, NULL);
-
-	//remove Instructor + Updating Admin
-	//suppossed remove
-	//string userInput2(test.remove_user(2));
-
-	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
-	int id;
-	const char* sqlD = "DELETE FROM INSTRUCTOR WHERE ID = ?;"; //a way to delete and remove
-	cout << "Delete Instructor 1-6: ";
-	cin >> id;
-	id = id + 20000;
-
-	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
-	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
-	sqlite3_step(stmt); //run it
-	sqlite3_finalize(stmt); //save 
-	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
-
-	//Update
-	const char* sqlU = "UPDATE ADMIN SET TITLE = ? WHERE ID = ?;"; //a way to update one line
-
-	string nameChange;
-
-	getline(cin, nameChange);
-	cout << "Change Admin Title: ";
-	getline(cin, nameChange);
-
-	cout << "Admin 1 or 2: ";
-	cin >> id;
-	id = id + 30000;
-
-	sqlite3_prepare_v2(DB, sqlU, -1, &stmt, NULL); //preparing the update
-	sqlite3_bind_text(stmt, 1, nameChange.c_str(), -1, SQLITE_STATIC); //change name 
-	sqlite3_bind_int(stmt, 2, id); //change name of that row that matches with the ID number
-	sqlite3_step(stmt); //run it
-	sqlite3_finalize(stmt); //save 
-
 	sqlite3_close(DB);
+
 
 	return 0;
 }
