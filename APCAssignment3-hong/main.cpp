@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
 	int exit = 0;
 
-	exit = sqlite3_open("assignment3.db", &DB);			//open the database
+	exit = sqlite3_open("assignment3.db", &DB);		//open the database
 	
 	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
 
@@ -157,7 +157,9 @@ int main(int argc, char** argv)
 	}
 
 
-	string sql("INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
+	string sql(
+		/*
+		"INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
 		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
 
 		"INSERT INTO INSTRUCTOR VALUES(20001, 'Joseph', 'Fourier', 'Full Prof.', 1820, 'BSEE', 'fourierj');"
@@ -196,7 +198,7 @@ int main(int argc, char** argv)
 		"INSERT INTO STUDENT VALUES(10018, 'Christian', 'Milord', 2022, 'COMP', 'milordc');"
 		"INSERT INTO STUDENT VALUES(10019, 'Jeury', 'Gonzalez', 2023, 'ARCH', 'gonzalez');"
 		"INSERT INTO STUDENT VALUES(10020, 'Hong', 'Luu', 2022, 'BSCO', 'luuh');"
-
+		*/
 		//main issue is that this is not being used
 		"INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'TR', 'Fall', 2022, 4, 20002);"
 		"INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20007);"
