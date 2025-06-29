@@ -17,6 +17,9 @@ using std::ifstream;  //read data from a file
 
 using namespace std;
 
+
+void instructor_ui(sqlite3* db, int instructorID); // Instead of making a whole other file just for this
+
 /*************************************************************************************************
  The callback() function is invoked for each result row coming out of the evaluated SQL statement
  1st argument - the 4th argument provided by sqlite3_exec() and is typically not used
