@@ -38,6 +38,34 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 	return 0;
 }
 
+//helper function
+bool authenticate(sqlite3* db,
+	const std::string& user,
+	const std::string& pass,
+	std::string& roleOut,
+	int& idOut)
+{
+	const char* sql =
+		"SELECT ROLE, USER_ID "
+		"FROM LOGIN "
+		"WHERE USERNAME = ?1 AND PASSWORD = ?2;";
+
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+		return false;
+
+	sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 2, pass.c_str(), -1, SQLITE_STATIC);
+
+	bool ok = (sqlite3_step(stmt) == SQLITE_ROW);
+	if (ok) {
+		roleOut = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		idOut = sqlite3_column_int(stmt, 1);
+	}
+	sqlite3_finalize(stmt);
+	return ok;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -146,13 +174,25 @@ int main(int argc, char** argv)
 		");";
 
 	string tableLogin = R"(
-	  CREATE TABLE IF NOT EXISTS LOGIN (
-	  USERNAME TEXT PRIMARY KEY,
-	  PASSWORD TEXT NOT NULL,
-	  ROLE     TEXT NOT NULL CHECK (ROLE IN ('ADMIN','INSTRUCTOR','STUDENT')),
-	  USER_ID  INTEGER NOT NULL
-);
+    CREATE TABLE IF NOT EXISTS LOGIN (
+        USERNAME TEXT PRIMARY KEY,
+        PASSWORD TEXT NOT NULL,
+        ROLE     TEXT NOT NULL CHECK (ROLE IN ('ADMIN','INSTRUCTOR','STUDENT')),
+        USER_ID  INTEGER NOT NULL
+    );
 )";
+	const char* seedLogin =
+		"INSERT OR IGNORE INTO LOGIN VALUES "
+		"('admin1','pass123','ADMIN',      30001),"
+		"('inst1', 'hunter2','INSTRUCTOR', 20001),"
+		"('stud1', 'ilovecpp','STUDENT',   10001);";
+
+	exit = sqlite3_exec(DB, seedLogin, nullptr, nullptr, &messageError);
+	if (exit != SQLITE_OK) {
+		cerr << "Seeding LOGIN failed: " << messageError << '\n';
+		sqlite3_free(messageError);
+	}
+
 
 	exit = sqlite3_exec(DB, tableLogin.c_str(), nullptr, nullptr, &messageError);
 
@@ -387,13 +427,13 @@ int main(int argc, char** argv)
 	}
 
 	//tables are all set from above
-	/**********************************************************************************************************************************/
+	/**********************************************************************************************************************************
 
 	Admin adctrl("Admin", "Astrator", 1, "astratora", "trap", "reddit"); //control admin
 
 	Instructor teactrl("Torn", "Tori", 2, "torii", "sensei", 2001, "TEAC"); //control instructor
 
-	/*sqlite3_exec(DB,
+	sqlite3_exec(DB,
 		teactrl.print_schedule().c_str(),
 		callback, nullptr, &messageError);
 
@@ -403,9 +443,49 @@ int main(int argc, char** argv)
 
 	sqlite3_exec(DB,
 		teactrl.search_course_roster_for_student().c_str(), // prompts
-		callback, nullptr, &messageError);*/
+		callback, nullptr, &messageError);
 
-	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); //control student
+	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); */
+
+	//Omar login and logout
+// Login → role-dispatch → logout loop
+	while (true)
+	{
+		string u, p, role;
+		int uid;
+
+		cout << "\nUsername (Q to quit): ";
+		cin >> u;
+		if (u == "Q" || u == "q") break;
+
+		cout << "Password: ";
+		cin >> p;
+
+		if (!authenticate(DB, u, p, role, uid)) {
+			cout << "Invalid credentials — try again.\n";
+			continue;
+		}
+
+		cout << "\nWelcome, " << u << "  [" << role << "]\n";
+
+		if (role == "ADMIN") {
+			// TODO: call your real Admin menu here
+			cout << "(Admin UI placeholder — press ENTER to log out)\n";
+			cin.ignore(); cin.get();
+		}
+		else if (role == "INSTRUCTOR") {
+			// TODO: call instructor_ui(DB, instructorObj);
+			cout << "(Instructor UI placeholder — press ENTER to log out)\n";
+			cin.ignore(); cin.get();
+		}
+		else if (role == "STUDENT") {
+			// TODO: call student_ui(DB, studentObj);
+			cout << "(Student UI placeholder — press ENTER to log out)\n";
+			cin.ignore(); cin.get();
+		}
+
+		cout << "Logged out.\n";
+	}
 
 
 	return 0;

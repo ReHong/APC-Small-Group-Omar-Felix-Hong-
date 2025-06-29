@@ -22,7 +22,7 @@ string Instructor::print_schedule() const
     return ss.str();
 }
 
-/* (2a) roster by CRN */
+
 string Instructor::print_course_roster(int crn) const
 {
     stringstream ss;
