@@ -30,6 +30,8 @@ public:
 	string show_last();
 	int show_ID();
 	string show_email();
+	int getID() const { return ID_num; } // Added by omar since It might be useful for searching in the future
+
 	
 	void set_ID(int ID);
 	void set_first(string first);

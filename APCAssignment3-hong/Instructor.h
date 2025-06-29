@@ -1,23 +1,37 @@
-#pragma once
-#include "User.h"
-#include "Admin.h"
-#include "Student.h"
+#ifndef INSTRUCTOR_H
+#define INSTRUCTOR_H
 
-class Instructor :
-    public User
+#include "User.h"
+#include <iostream>
+#include <sstream>
+#include <string>
+
+using namespace std;
+
+
+class Instructor : public User
 {
-	string title;
-	int YoH;
-	string department;
+private:
+    string title;
+    int    hireYear;
+    string dept;
 
 public:
-	Instructor(string first, string last, int ID, string e, string t, int y, string d);
-	string print_schedule();
-	string print_class();
-	string search_course();
+    Instructor(string first,
+        string last,
+        int    ID,
+        string email,
+        string _title,
+        int    _hireYear,
+        string _dept);
 
-	//Destructor
-	~Instructor();
+    string print_schedule() const;
 
+    // roster – direct & prompt versions
+    string print_course_roster(int crn) const;
+    string print_course_roster() const;
+
+    string search_course_roster_for_student() const;
 };
 
+#endif   // INSTRUCTOR_H

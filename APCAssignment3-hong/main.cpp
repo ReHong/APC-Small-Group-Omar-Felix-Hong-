@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
 #include <cstdlib>
 #include "User.h"
@@ -6,6 +6,7 @@
 #include "Instructor.h"
 #include "Admin.h"
 #include "sqlite3.h"
+
 
 using std::cin;
 using std::cout;
@@ -55,7 +56,7 @@ int main(int argc, char** argv)
 	int exit = 0;
 
 	exit = sqlite3_open("assignment3.db", &DB);		//open the database
-	
+
 	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
 
 	char* messageError;
@@ -144,6 +145,26 @@ int main(int argc, char** argv)
 		"PRIMARY KEY(Course_ID, Student_ID)"
 		");";
 
+	string tableLogin = R"(
+	  CREATE TABLE LOGIN (
+	  USERNAME TEXT PRIMARY KEY,
+	  PASSWORD TEXT NOT NULL,
+	  ROLE     TEXT NOT NULL CHECK (ROLE IN ('ADMIN','INSTRUCTOR','STUDENT')),
+	  USER_ID  INTEGER NOT NULL
+);
+)";
+
+	exit = sqlite3_exec(DB, tableLogin.c_str(), nullptr, nullptr, &messageError);
+
+
+	if (exit != SQLITE_OK) {
+		cerr << "Error creating LOGIN table: " << messageError << '\n';
+		sqlite3_free(messageError);
+	}
+	else {
+		cout << "LOGIN table created successfully\n";
+	}
+
 	exit = sqlite3_exec(DB, tableSchedule.c_str(), NULL, 0, &messageError);
 
 	if (exit != SQLITE_OK)
@@ -155,6 +176,8 @@ int main(int argc, char** argv)
 	{
 		cout << "Table created Successfully" << std::endl;
 	}
+
+
 
 
 	string sql(
@@ -325,6 +348,11 @@ int main(int argc, char** argv)
 		COMMIT;
 	)";
 
+	
+
+	
+
+
 	exit = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &messageError);
 
 	if (exit != SQLITE_OK)
@@ -365,10 +393,20 @@ int main(int argc, char** argv)
 
 	Instructor teactrl("Torn", "Tori", 2, "torii", "sensei", 2001, "TEAC"); //control instructor
 
+	/*sqlite3_exec(DB,
+		teactrl.print_schedule().c_str(),
+		callback, nullptr, &messageError);
+
+	sqlite3_exec(DB,
+		teactrl.print_course_roster().c_str(),   // prompts for CRN
+		callback, nullptr, &messageError);
+
+	sqlite3_exec(DB,
+		teactrl.search_course_roster_for_student().c_str(), // prompts
+		callback, nullptr, &messageError);*/
+
 	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); //control student
 
-
-	sqlite3_close(DB);
 
 	return 0;
 }

@@ -1,40 +1,63 @@
-#include "Instructor.h"
-#include "User.h"
-#include "Student.h"
-#include "Admin.h"
+﻿#include "Instructor.h"
 
-Instructor::Instructor(string first, string last, int ID, string e, string t, int y, string d) : User(first, last, ID, e) 
+/* ctor */
+Instructor::Instructor(string first,
+    string last,
+    int    ID,
+    string email,
+    string _title,
+    int    _hireYear,
+    string _dept)
+    : User(first, last, ID, email),
+    title(_title),
+    hireYear(_hireYear),
+    dept(_dept) {}
+
+/* (1) schedule */
+string Instructor::print_schedule() const
 {
-	title = t;
-	YoH = y;
-	department = d;
+    stringstream ss;
+    ss << "SELECT CRN, TITLE, TIMES, DofW, SEMESTER, YEAR, CREDITS "
+        << "FROM COURSE WHERE INSTRUCTOR_ID = " << getID() << ";";
+    return ss.str();
 }
 
-//Method
-
-string Instructor::print_schedule() {
-	string print_schedule;
-	cout << "This will be the schedule printed" << endl;
-	cin >> print_schedule;
-	return print_schedule;
+/* (2a) roster by CRN */
+string Instructor::print_course_roster(int crn) const
+{
+    stringstream ss;
+    ss << "SELECT s.ID, s.NAME, s.SURNAME, s.EMAIL "
+        << "FROM STUDENT s "
+        << "JOIN SCHEDULE sch ON s.ID = sch.Student_ID "
+        << "WHERE sch.Course_ID = " << crn << " "
+        << "ORDER BY s.SURNAME;";
+    return ss.str();
 }
 
-string Instructor::print_class() {
-	string print_class;
-	cout << "This will be the classes printed" << endl;
-	cin >> print_class;
-	return print_class;
+/* (2b) roster – prompt */
+string Instructor::print_course_roster() const
+{
+    int crn;
+    cout << "\nEnter CRN whose roster you’d like to print: ";
+    cin >> crn;
+    return print_course_roster(crn);
 }
 
-string Instructor::search_course() {
+/* (3) search student   */
+string Instructor::search_course_roster_for_student() const
+{
+    string key;
+    cout << "\nSearch student by ID or surname: ";
+    cin >> key;
 
-	string course;
-	cout << "Type in course name here: " << endl;
-	cin >> course;
-	return course;
-}
-
-//Destructor
-Instructor::~Instructor() {
-	
+    stringstream ss;
+    ss << "SELECT c.CRN, c.TITLE, s.ID, s.NAME, s.SURNAME "
+        << "FROM COURSE c "
+        << "JOIN SCHEDULE sch ON c.CRN = sch.Course_ID "
+        << "JOIN STUDENT  s   ON sch.Student_ID = s.ID "
+        << "WHERE c.INSTRUCTOR_ID = " << getID() << " "
+        << "  AND (s.ID LIKE '%" << key << "%' "
+        << "       OR s.SURNAME LIKE '%" << key << "%') "
+        << "ORDER BY c.CRN;";
+    return ss.str();
 }
