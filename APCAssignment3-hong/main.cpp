@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 		");";
 
 	string tableLogin = R"(
-	  CREATE TABLE LOGIN (
+	  CREATE TABLE IF NOT EXISTS LOGIN (
 	  USERNAME TEXT PRIMARY KEY,
 	  PASSWORD TEXT NOT NULL,
 	  ROLE     TEXT NOT NULL CHECK (ROLE IN ('ADMIN','INSTRUCTOR','STUDENT')),
