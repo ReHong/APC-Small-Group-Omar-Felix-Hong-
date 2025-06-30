@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 		"YEAR INTEGER NOT NULL, "
 		"CREDITS INTEGER NOT NULL, "
 		"INSTRUCTOR_ID INTEGER, "
-		"FOREIGN KEY (INSTRUCTOR_ID) REFERENCES INSTRUCTOR(ID)"
+		"FOREIGN KEY (INSTRUCTOR_ID) REFERENCES INSTRUCTOR(ID) ON DELETE CASCADE"
 		");";
 
 	exit = sqlite3_exec(DB, tableCourse.c_str(), NULL, 0, &messageError);
@@ -139,8 +139,8 @@ int main(int argc, char** argv)
 	string tableSchedule = "CREATE TABLE IF NOT EXISTS SCHEDULE("
 		"Course_ID INTEGER, "
 		"Student_ID INTEGER, "
-		"FOREIGN KEY (Course_ID) REFERENCES COURSE(CRN),"
-		"FOREIGN KEY (Student_ID) REFERENCES STUDENT(ID),"
+		"FOREIGN KEY (Course_ID) REFERENCES COURSE(CRN) ON DELETE CASCADE,"
+		"FOREIGN KEY (Student_ID) REFERENCES STUDENT(ID) ON DELETE CASCADE,"
 		"PRIMARY KEY(Course_ID, Student_ID)"
 		");";
 
@@ -156,9 +156,9 @@ int main(int argc, char** argv)
 		cout << "Table created Successfully" << std::endl;
 	}
 
-
+	/*
 	string sql(
-		/*
+		
 		"INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
 		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
 
@@ -198,7 +198,7 @@ int main(int argc, char** argv)
 		"INSERT INTO STUDENT VALUES(10018, 'Christian', 'Milord', 2022, 'COMP', 'milordc');"
 		"INSERT INTO STUDENT VALUES(10019, 'Jeury', 'Gonzalez', 2023, 'ARCH', 'gonzalez');"
 		"INSERT INTO STUDENT VALUES(10020, 'Hong', 'Luu', 2022, 'BSCO', 'luuh');"
-		*/
+		
 		//main issue is that this is not being used
 		"INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'TR', 'Fall', 2022, 4, 20002);"
 		"INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20007);"
@@ -220,6 +220,7 @@ int main(int argc, char** argv)
 		"INSERT INTO COURSE VALUES(50018, 'Circuit Theory II Lab', 'ELEC', '1:00 - 3:00 PM', 13, 15, 'R', 'Spring', 2022, 4, 20001);"
 		"INSERT INTO COURSE VALUES(50019, 'Architecture Assembly', 'ARCH', '2:00 - 4:00 PM', 14, 16, 'TF', 'Spring', 2022, 4, 20009);"
 		"INSERT INTO COURSE VALUES(50020, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'TR', 'Spring', 2022, 4, 20009);"
+		"INSERT INTO COURSE VALUES(50021, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'TR', 'Spring', 2022, 4, 20009);"
 	);
 
 	exit = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &messageError);
@@ -233,7 +234,8 @@ int main(int argc, char** argv)
 	{
 		cout << "Data Successfully Inserted" << std::endl;
 	}
-	/*
+	
+	
 	string queryLogin = R"(
 		SELECT g.name AS disliked_game
 		FROM Player p
@@ -241,7 +243,7 @@ int main(int argc, char** argv)
 		JOIN Game g ON pd.game_id = g.id
 		WHERE p.username = 'ReHong';
 		)";
-	*/
+	
 
 	//database is not saved yet
 	//main issue is that this is not being used
@@ -264,7 +266,7 @@ int main(int argc, char** argv)
 	*/
 
 	/*
-	string sql = R"(
+	sql = R"(
 		INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'TR', 'Fall', 2022, 4, 20002);
 		INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20007);
 		INSERT INTO COURSE VALUES(50003, 'English III', 'ENGL', '2:00 - 4:00 PM', 14, 16, 'MW', 'Fall', 2022, 4, 20014);
@@ -299,7 +301,8 @@ int main(int argc, char** argv)
 		cout << "Data Successfully Inserted" << std::endl;
 	}
 	*/
-	sql = R"(
+/*
+	string sql = R"(
 		BEGIN TRANSACTION;
 		INSERT INTO SCHEDULE(Course_ID, Student_ID) VALUES
 		(50001, 10001),
@@ -336,7 +339,8 @@ int main(int argc, char** argv)
 	{
 		cout << "Data Successfully Inserted" << std::endl;
 	}
-
+	
+	*/
 	string queryClasses = R"(
 		SELECT c.CRN, c.TITLE
 		FROM COURSE c
@@ -361,13 +365,115 @@ int main(int argc, char** argv)
 	//tables are all set from above
 	/**********************************************************************************************************************************/
 
+	/*
+	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
+	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
+	sqlite3_step(stmt); //run it
+	sqlite3_finalize(stmt); //save
+	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
+	*/
+
+	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
+
+	const char* sqlC = "DELETE FROM COURSE WHERE ID = ?;";
+
+	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
+
+	int choice; //user input choice
+
+	bool loop = true;
+
 	Admin adctrl("Admin", "Astrator", 1, "astratora", "trap", "reddit"); //control admin
 
 	Instructor teactrl("Torn", "Tori", 2, "torii", "sensei", 2001, "TEAC"); //control instructor
 
 	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); //control student
 
+	/*
+	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+		<< "1. Search Course (Default)" << endl
+		<< "2. Search Course (by Parameters)" << endl
+		<< "3. Add Course" << endl
+		<< "4. Remove Course" << endl
+		<< "5. Add User" << endl
+		<< "6. Remove User" << endl
+		<< "7. Change Instructor to Course" << endl
+		<< "8. Add/Remove student from Course" << endl << endl
+		<< "Choice: " << endl;
 
+	cin >> sqlcommands;
+	*/
+
+	while (loop)
+	{
+		cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+			<< "1. Search Course (Default)" << endl
+			<< "2. Search Course (by Parameters)" << endl
+			<< "3. Add Course" << endl
+			<< "4. Remove Course" << endl
+			<< "5. Add User" << endl
+			<< "6. Remove User" << endl
+			<< "7. Change Instructor to Course" << endl
+			<< "8. Add/Remove student from Course" << endl
+			<< "0. Exit" << endl << endl
+			<< "Choice: " << endl;
+
+		cin >> choice;
+
+		switch (choice)
+		{
+		case 1:
+			//prints all courses
+			sqlcommands = adctrl.print_course();
+			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
+			break;
+
+		case 2:
+			//Does Search Default by CRN
+			sqlcommands = adctrl.search_courseD();
+			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 3:
+			//ADD Course
+			sqlcommands = adctrl.add_course();
+			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 4://issue
+			//Remove Course 
+			adctrl.remove_course();
+			break;
+
+		case 5:
+			//add user
+			sqlcommands = adctrl.add_user();
+			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 6://issue
+			//remove user
+			adctrl.remove_user();
+			sqlite3_exec(DB, sqlcommands.c_str(), nullptr, nullptr, &messageError);
+			break;
+
+		case 7:
+			//Change Instructor to Course
+			sqlcommands = adctrl.link_instructor();
+			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 8:
+			//Add/Remove student from Course
+			sqlcommands = adctrl.link_student();
+			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+		case 0:
+			//exit
+			loop = false;
+			break;
+		}
+	}
 	sqlite3_close(DB);
 
 	return 0;
