@@ -34,7 +34,7 @@ string Instructor::print_course_roster(int crn) const
     return ss.str();
 }
 
-/* (2b) roster – prompt */
+
 string Instructor::print_course_roster() const
 {
     int crn;
@@ -43,7 +43,7 @@ string Instructor::print_course_roster() const
     return print_course_roster(crn);
 }
 
-/* (3) search student   */
+
 string Instructor::search_course_roster_for_student() const
 {
     string key;

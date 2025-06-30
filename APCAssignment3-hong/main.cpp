@@ -17,7 +17,7 @@ using std::ifstream;  //read data from a file
 
 using namespace std;
 
-// Instructor console menu would not work correctly in a cpp and header file
+// Instructor console menu would not work correctly in a cpp and header file - Omar 
 static int print_cb(void*, int n, char** v, char**)
 {
 	for (int i = 0; i < n; ++i)
@@ -93,7 +93,7 @@ void instructor_ui(sqlite3* db, int myID)
 		}
 	}
 }
-//
+// - Omar Code that will be transferred later 
 
 
 
