@@ -200,13 +200,16 @@ string Admin::remove_user(int User)
 
 }
 
-
-string Admin::print_class() {
-	string print_class;
-	cout << "This is the printed class" << endl;
-	cin >> print_class;
-	return print_class;
+string Admin::add_student_course()
+{
+	return "None";
 }
+
+string Admin::remove_student_course()
+{
+	return "None";
+}
+
 
 string Admin::link_instructor()
 {

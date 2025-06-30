@@ -137,6 +137,24 @@ int main(int argc, char** argv)
 	}
 
 	/*
+	string queryLogin = R"(
+		SELECT g.name AS disliked_game
+		FROM Player p
+		JOIN PlayerDislikes pd ON p.id = pd.player_id
+		JOIN Game g ON pd.game_id = g.id
+		WHERE p.username = 'ReHong';
+		)";
+	*/
+	
+	string queryClasses = R"(
+		SELECT ID 
+		FROM 
+		JOIN PlayerDislikes pd ON p.id = pd.player_id
+		JOIN Game g ON pd.game_id = g.id
+		WHERE p.username = 'ReHong';
+		)";
+	
+	/*
 	string sql("INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
 		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
 
@@ -199,7 +217,7 @@ int main(int argc, char** argv)
 		"INSERT INTO COURSE VALUES(50019, 'Architecture Assembly', 'ARCH', '2:00 - 4:00 PM', 14, 16, 'T R', 'Spring', 2022, 4, NULL);"
 		"INSERT INTO COURSE VALUES(50020, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'T R', 'Spring', 2022, 4, NULL);"
 	);
-	*/
+	
 
 	string sql(
 		//main issue is that this is not being used
@@ -236,9 +254,11 @@ int main(int argc, char** argv)
 	{
 		cout << "Data Successfully Inserted" << std::endl;
 	}
-
+	*/
+	
+	
+	
 	sqlite3_close(DB);
-
 
 	return 0;
 }

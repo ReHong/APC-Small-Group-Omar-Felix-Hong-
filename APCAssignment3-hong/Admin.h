@@ -15,10 +15,12 @@ public:
 	string add_course();
 	string remove_course();
 
-	string add_user(int User);
+	string add_user(int User); 
 	string remove_user(int User);
 
-	string print_class();
+	string add_student_course(); //add student to the course
+	string remove_student_course(); //remove student from the course
+
 	string link_instructor();
 	string link_student();
 	//Destructor
