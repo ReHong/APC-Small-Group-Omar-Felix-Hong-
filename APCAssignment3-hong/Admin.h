@@ -13,7 +13,7 @@ class Admin :
 public:
 	Admin(string first, string last, int ID, string e, string t, string o);
 	string add_course();
-	string remove_course();
+	void remove_course();
 
 	string add_user(int User);
 	string remove_user(int User);

@@ -4,6 +4,27 @@
 #include "Instructor.h"
 #include "Student.h"
 #include "sqlite3.h"
+#include <iostream>
+#include <string>
+#include "sqlite3.h"
+#include <string>
+
+using namespace std; //thanks geeksforgeeks
+
+
+static int callback(void* data, int argc, char** argv, char** azColName)
+{
+	int i;
+
+	for (i = 0; i < argc; i++)
+	{
+		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+	}
+
+	printf("\n");
+
+	return 0;
+}
 
 
 Admin::Admin(string first, string last, int ID, string e, string t, string o) : User(first, last, ID, e) {
@@ -18,7 +39,12 @@ string Admin::add_course() //work in progress
 	string CRN; //CRN number
 	string T; //title
 	string D; //Department
-	string t; //Times (Label)
+
+	string t;
+	string day;
+
+	string tl1; //Times (Label)
+	string tl2;
 
 	string ti; //Time inital
 	string te; //Time end
@@ -43,7 +69,7 @@ string Admin::add_course() //work in progress
 	cout << endl << "Enter Department Section:";
 	cin >> D;
 
-	while (loop)
+	while (loop) //wont stop until the time has an actual start and end logically in military time
 	{
 		cout << endl << "Enter Time (Ex. 2:00-4:00 PM)";
 		cout << endl << "Following must be in Military time for start and end";
@@ -52,11 +78,24 @@ string Admin::add_course() //work in progress
 		cout << endl << "Enter End Time:";
 		cin >> tei;
 
+		tl1 = to_string(tii);
+		tl2 = to_string(tei);
+
+		if (tei > 12)
+		{
+			day = "PM";
+		}
+		else
+		{
+			day = "AM";
+		}
+
+
 		if (tei > tii)
 		{
 			ti = std::to_string(tii);
 			te = std::to_string(tei);
-			loop = false;
+			loop = false; //only ends when the end time is higher than the inital
 		}
 		else
 		{
@@ -64,7 +103,10 @@ string Admin::add_course() //work in progress
 		}
 
 	}
-	cout << endl << "Enter Days of the week (In order Ex. M W F):";
+
+	t = tl1 + ":00 - " + tl2 + ":00 " + day;
+
+	cout << endl << "Enter Days of the week (In order Ex. M W F): ";
 	cin >> dw;
 
 	cout << endl << "Enter Semester:";
@@ -84,17 +126,88 @@ string Admin::add_course() //work in progress
 	//"INSERT INTO COURSE VALUES(50008, 'Engrish', 'BSEE', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);
 	return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '"
 		+ t + "', " + ti + ", " + te + ", '" + dw + "', '" + sem + "', " + year
-		+ ", " + instructID + ")";
+		+ ", " + instructID + ")"; //related insert to the previous comment
 	//return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '" + t + "', '" + dw + "', '" + sem + "', " + year + ", " + instructID + ")";
 }
 
-string Admin::remove_course() { //work in progress
 
-	cout << "CRN Number for Deletion:";
-	string choice;
-	cout << "Enter course you want to add: " << endl;
+/*
+//test case for using the methods for sqlite
+	Admin test("Admin", "Astrator", 1, "astratora", "trap", "reddit");
+
+	//add student 1
+	string userInput(test.add_user(3));
+
+	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL);
+
+	//add student 2
+	string userInput2(test.add_user(3));
+
+	exit = sqlite3_exec(DB, userInput2.c_str(), callback, NULL, NULL);
+
+	//remove Instructor + Updating Admin
+	//suppossed remove
+	//string userInput2(test.remove_user(2));
+
+	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
+	int id;
+	const char* sqlD = "DELETE FROM INSTRUCTOR WHERE ID = ?;"; //a way to delete and remove
+	cout << "Delete Instructor 1-6: ";
+	cin >> id;
+	id = id + 20000;
+
+	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
+	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
+	sqlite3_step(stmt); //run it
+	sqlite3_finalize(stmt); //save
+	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
+
+	//Update
+	const char* sqlU = "UPDATE ADMIN SET TITLE = ? WHERE ID = ?;"; //a way to update one line
+
+	string nameChange;
+
+	getline(cin, nameChange);
+	cout << "Change Admin Title: ";
+	getline(cin, nameChange);
+
+	cout << "Admin 1 or 2: ";
+	cin >> id;
+	id = id + 30000;
+
+	sqlite3_prepare_v2(DB, sqlU, -1, &stmt, NULL); //preparing the update
+	sqlite3_bind_text(stmt, 1, nameChange.c_str(), -1, SQLITE_STATIC); //change name
+	sqlite3_bind_int(stmt, 2, id); //change name of that row that matches with the ID number
+	sqlite3_step(stmt); //run it
+	sqlite3_finalize(stmt); //save
+*/
+
+void Admin::remove_course() 
+{ 
+	
+	sqlite3* DB;
+	sqlite3_open("assignment3.db", &DB);
+	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
+	
+	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
+
+	const char* sqlD = "DELETE FROM COURSE WHERE CRN = ?;"; //a way to delete and remove
+	
+	int choice;
+	cout << "** REMOVING COURSE PROTOCOL **" << endl;
+	cout << "ENTER CRN for Deletion: ";
 	cin >> choice;
-	return "DELETE FROM COURSE WHERE CRN = ?;";
+	cout << "** REMOVING COURSE PROTOCOL **" << endl;
+
+	string change = "DELETE FROM COURSE WHERE CRN =" + to_string(choice) + ";";
+
+	sqlite3_prepare_v2(DB, change.c_str(), -1, &stmt, NULL); //preparing the update
+
+	sqlite3_bind_int(stmt, 1, choice); //change name of that row that matches with the ID number
+	
+	sqlite3_step(stmt); //run it
+	
+	sqlite3_finalize(stmt); //save
 }
 
 string Admin::add_user(int User) {
@@ -210,12 +323,54 @@ string Admin::print_class() {
 
 string Admin::link_instructor()
 {
-	return "None";
+	string instructorID;
+	string courseCRN;
+	cout << "** INSTRUCTOR TO COURSE **" << endl;
+
+	cout << endl << "Course ID:";
+	cin >> courseCRN;
+
+	cout << endl << "Instructor ID:";
+	cin >> instructorID;
+
+	return "UPDATE COURSE SET INSTRUCTOR_ID = " + instructorID + " WHERE CRN = " + courseCRN + ";";
 }
 
-string Admin::link_student()
+string Admin::link_student() //add or remove
 {
-	return "None";
+	string courseCRN;
+	string studentID;
+	int choice = 0;
+
+	cout << "** STUDENT TO COURSE **" << endl;
+	while ((choice != 1) && (choice != 2)) //loops only when when the user does not pick the 2 options
+	{
+		cout << endl << "1. Linking Student to Course"
+			<< endl << "2. Removing Student from Course"
+			<< endl << "Choice: ";
+		cin >> choice;
+
+		if ((choice != 1) && (choice != 2))
+		{
+			cout << "** Not an option. Try Again **" << endl;
+		}
+	}
+
+	cout << endl << "Course ID:";
+	cin >> courseCRN;
+
+	cout << endl << "Student ID:";
+	cin >> studentID;
+
+	switch (choice)
+	{
+	case 1: //adding student
+		return "INSERT INTO SCHEDULE (Course_ID, Student_ID) VALUES(" + courseCRN + ", " + studentID + ");";
+		break;
+
+	case 2: //removing student
+		return "DELETE FROM SCHEDULE WHERE Course_ID = " + courseCRN + " AND Student_ID = " + studentID + ";";
+	}
 }
 
 //Destructor
