@@ -1,6 +1,6 @@
 ﻿#include "Instructor.h"
 
-/* ctor */
+
 Instructor::Instructor(string first,
     string last,
     int    ID,
@@ -13,7 +13,7 @@ Instructor::Instructor(string first,
     hireYear(_hireYear),
     dept(_dept) {}
 
-/* (1) schedule */
+
 string Instructor::print_schedule() const
 {
     stringstream ss;

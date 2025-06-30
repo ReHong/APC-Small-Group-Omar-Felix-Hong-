@@ -17,6 +17,85 @@ using std::ifstream;  //read data from a file
 
 using namespace std;
 
+// Instructor console menu would not work correctly in a cpp and header file
+static int print_cb(void*, int n, char** v, char**)
+{
+	for (int i = 0; i < n; ++i)
+		std::cout << (v[i] ? v[i] : "NULL") << '\t';
+	std::cout << '\n';
+	return 0;
+}
+
+void instructor_ui(sqlite3* db, int myID)
+{
+	bool done = false;
+	char* err = nullptr;
+	int  rc;
+	std::string sql;
+
+	while (!done)
+	{
+		std::cout << "\n──────── Instructor Menu ────────\n"
+			<< "1  View my schedule\n"
+			<< "2  Print a course roster\n"
+			<< "3  Search a student in my classes\n"
+			<< "0  Log out\n"
+			<< "▶ Choice: ";
+		int ch;  std::cin >> ch;
+
+		switch (ch)
+		{
+		case 1:   // schedule
+			sql = "SELECT CRN, TITLE, TIMES, DofW, "
+				"SEMESTER||' '||YEAR "
+				"FROM  COURSE "
+				"WHERE INSTRUCTOR_ID = " + std::to_string(myID) + ';';
+			std::cout << "\nCRN\tTitle\tTimes\tDays\tTerm\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+
+		case 2: { // roster
+			int crn;  std::cout << "CRN: ";  std::cin >> crn;
+			sql = "SELECT s.Student_ID, st.NAME, st.SURNAME "
+				"FROM   SCHEDULE s "
+				"JOIN   STUDENT  st ON st.ID = s.Student_ID "
+				"WHERE  s.Course_ID = " + std::to_string(crn) +
+				" AND   EXISTS(SELECT 1 FROM COURSE c "
+				"             WHERE c.CRN = s.Course_ID "
+				"               AND c.INSTRUCTOR_ID = " + std::to_string(myID) + ");";
+			std::cout << "\nID\tFirstName\tLastName\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+		}
+
+		case 3: { // student search
+			int sid;  std::cout << "Student ID: ";  std::cin >> sid;
+			sql = "SELECT c.CRN, c.TITLE "
+				"FROM   COURSE  c "
+				"JOIN   SCHEDULE s ON s.Course_ID = c.CRN "
+				"WHERE  c.INSTRUCTOR_ID = " + std::to_string(myID) +
+				" AND   s.Student_ID   = " + std::to_string(sid) + ';';
+			std::cout << "\nCourses that student " << sid << " takes with you:\n"
+				<< "CRN\tTitle\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+		}
+
+		case 0:
+			done = true;                     // leave menu → log out
+			break;
+
+		default:
+			std::cout << "Invalid choice.\n";
+		}
+	}
+}
+//
+
+
 
 void instructor_ui(sqlite3* db, int instructorID); // Instead of making a whole other file just for this
 
@@ -187,8 +266,9 @@ int main(int argc, char** argv)
 	const char* seedLogin =
 		"INSERT OR IGNORE INTO LOGIN VALUES "
 		"('admin1','pass123','ADMIN',      30001),"
-		"('inst1', 'hunter2','INSTRUCTOR', 20001),"
+		"('fourierj', 'inst1', 'INSTRUCTOR', 20001),"
 		"('stud1', 'ilovecpp','STUDENT',   10001);";
+
 
 	exit = sqlite3_exec(DB, seedLogin, nullptr, nullptr, &messageError);
 	if (exit != SQLITE_OK) {
@@ -451,7 +531,6 @@ int main(int argc, char** argv)
 	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); */
 
 	//Omar login and logout
-// Login → role-dispatch → logout loop
 	while (true)
 	{
 		string u, p, role;
@@ -465,30 +544,35 @@ int main(int argc, char** argv)
 		cin >> p;
 
 		if (!authenticate(DB, u, p, role, uid)) {
-			cout << "Invalid credentials — try again.\n";
+			cout << "Invalid credentials. Try again.\n";
 			continue;
 		}
 
 		cout << "\nWelcome, " << u << "  [" << role << "]\n";
 
-		if (role == "ADMIN") {
-			// TODO: call your real Admin menu here
-			cout << "(Admin UI placeholder — press ENTER to log out)\n";
+		if (role == "ADMIN")
+		{
+			// TODO: admin_ui(DB, uid);
+			cout << "(Admin UI placeholder    press ENTER to log out)\n";
 			cin.ignore(); cin.get();
 		}
-		else if (role == "INSTRUCTOR") {
-			// TODO: call instructor_ui(DB, instructorObj);
-			cout << "(Instructor UI placeholder — press ENTER to log out)\n";
-			cin.ignore(); cin.get();
+		else if (role == "INSTRUCTOR")
+		{
+			instructor_ui(DB, uid);          // real Instructor menu
 		}
-		else if (role == "STUDENT") {
-			// TODO: call student_ui(DB, studentObj);
+		else if (role == "STUDENT")
+		{
+			// TODO: student_ui(DB, uid);
 			cout << "(Student UI placeholder — press ENTER to log out)\n";
 			cin.ignore(); cin.get();
 		}
+		else
+		{
+			cout << "Unknown role in LOGIN table.\n";
+		}
 
 		cout << "Logged out.\n";
-	}
+	} 
 
 
 	return 0;
