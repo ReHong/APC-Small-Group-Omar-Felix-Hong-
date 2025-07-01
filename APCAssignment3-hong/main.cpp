@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 
 	sqlite3_exec(DB, "DROP TABLE IF EXISTS COURSE;", nullptr, nullptr, &messageError);
 
-	string tableCourse = "CREATE TABLE IF NOT EXISTS COURSE("
+	string tableCourse = "CREATE TABLE IF NOT EXISTS COURSE(" //database of all courses
 		"CRN INTEGER PRIMARY KEY, "
 		"TITLE TEXT NOT NULL, "
 		"DEPARTMENT TEXT NOT NULL, "
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 		cout << "Table created Successfully" << std::endl;
 	}
 
-	string tableSchedule = "CREATE TABLE IF NOT EXISTS SCHEDULE("
+	string tableSchedule = "CREATE TABLE IF NOT EXISTS SCHEDULE(" //store data of existing courses and students unique data.
 		"Course_ID INTEGER, "
 		"Student_ID INTEGER, "
 		"FOREIGN KEY (Course_ID) REFERENCES COURSE(CRN) ON DELETE CASCADE,"
@@ -341,6 +341,8 @@ int main(int argc, char** argv)
 	}
 	
 	*/
+
+	//holds all data that exists within a small place to pull data
 	string queryClasses = R"(
 		SELECT c.CRN, c.TITLE
 		FROM COURSE c
@@ -404,7 +406,7 @@ int main(int argc, char** argv)
 	cin >> sqlcommands;
 	*/
 
-	while (loop)
+	while (loop) //UI and loop for Admin before including Login
 	{
 		cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
 			<< "1. Search Course (Default)" << endl

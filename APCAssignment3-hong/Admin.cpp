@@ -78,7 +78,7 @@ string Admin::add_course() //work in progress
 		tl1 = to_string(tii);
 		tl2 = to_string(tei);
 
-		if (tei > 12)
+		if (tei > 12) //check AM or PM
 		{
 			day = "PM";
 		}
@@ -150,7 +150,7 @@ string Admin::add_course() //work in progress
 
 */
 
-int Admin::remove_course()
+int Admin::remove_course() //all process within a command
 {
 
 	sqlite3* DB;
@@ -187,8 +187,8 @@ int Admin::remove_course()
 	return choice;
 }
 
-string Admin::add_user() {
-
+string Admin::add_user() 
+{
 	string firstN;
 	string lastN;
 	string ID;                                       //may revert back to int in the future
@@ -284,7 +284,7 @@ string Admin::remove_user()
 			cout << "** ERROR User Choice Try Again **" << endl;
 		}
 	}
-	switch (user)
+	switch (user) //switch between adding or removing one of the 3 selected using User variable
 	{
 	case 1: //Admin
 		cout << "**Process of Removing Admin**" << endl
@@ -324,14 +324,15 @@ string Admin::remove_user()
 }
 
 
-string Admin::print_class() {
+string Admin::print_class() 
+{
 	string print_class;
 	cout << "This is the printed class" << endl;
 	cin >> print_class;
 	return print_class;
 }
 
-string Admin::link_instructor()
+string Admin::link_instructor() //add or change instructor to the course
 {
 	string instructorID;
 	string courseCRN;
@@ -348,7 +349,7 @@ string Admin::link_instructor()
 
 string Admin::link_student() //add or remove
 {
-	string courseCRN;
+	string courseCRN; 
 	string studentID;
 	int choice = 0;
 
