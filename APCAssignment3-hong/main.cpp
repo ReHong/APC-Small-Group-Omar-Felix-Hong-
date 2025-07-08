@@ -367,9 +367,30 @@ int main(int argc, char** argv)
 
 	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); //control student
 
+	int choice;
 
-	sqlite3_close(DB);
+	cout << "What would you like to do: " << endl << "1. Add/Remove a class to the Schedule" << endl << "2. Print your Schedule" << endl << "0. Logout" << endl;
+	cin >> choice;
+
+	switch (choice) {
+
+	case 1:
+
+		Student::add_remove_course();
+
+	case 2:
+
+		Student::print_course();
+
+	case 0:
+
+		return 0;
+
+	}
+
+	sqlite3_close(DB); 
 
 	return 0;
 }
+
 

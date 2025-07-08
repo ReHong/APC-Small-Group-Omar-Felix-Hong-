@@ -2,6 +2,7 @@
 #include "User.h"
 #include "Admin.h"
 #include "Instructor.h"
+#include "sqlite3.h"
 
 class Student :
     public User
@@ -11,10 +12,11 @@ class Student :
 
 public:
 	Student(string first, string last, int ID, string e, int g, string m);
-	string search_course();
-	string add_course();
-	string drop_course();
+	string add_remove_course();
 	string print_course();
+	//string check_confliction();  Now within the add_remove_course function
+
+
 
 	//Destructor
 	~Student();
