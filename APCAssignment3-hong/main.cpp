@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 		"EMAIL TEXT NOT NULL); ";
 
 	int exit = 0;
-
+	
 	exit = sqlite3_open("assignment3.db", &DB);		//open the database
 	
 	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
@@ -376,11 +376,11 @@ int main(int argc, char** argv)
 
 	case 1:
 
-		Student::add_remove_course();
+		studctrl.add_remove_course();
 
 	case 2:
 
-		Student::print_course();
+		studctrl.print_course();
 
 	case 0:
 
