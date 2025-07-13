@@ -60,8 +60,10 @@ string Admin::add_course() //work in progress
 		<< "Enter CRN: ";
 	cin >> CRN;
 
+	cin.ignore();
+
 	cout << endl << "Enter Course Name:";
-	cin >> T;
+	getline(cin, T);
 
 	cout << endl << "Enter Department Section:";
 	cin >> D;
@@ -123,7 +125,7 @@ string Admin::add_course() //work in progress
 	//"INSERT INTO COURSE VALUES(50008, 'Engrish', 'BSEE', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);
 	return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '"
 		+ t + "', " + ti + ", " + te + ", '" + dw + "', '" + sem + "', " + year
-		+ ", " + instructID + ");"; //related insert to the previous comment
+		+ ", " + cred + ", " + instructID + ");"; //related insert to the previous comment
 	//return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '" + t + "', '" + dw + "', '" + sem + "', " + year + ", " + instructID + ")";
 }
 
@@ -256,6 +258,8 @@ string Admin::add_user() {
 		return "INSERT INTO STUDENT VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', " + year + ", '" + m + "', '" + e + "');";
 		break;
 	}
+
+	//string loginInsert = "INSERT INTO LOGIN (USERNAME, PASSWORD, ROLE, USER_ID) VALUES ('" + username + "', 'MysoultoWIT2022', 'INSTRUCTOR', " + ID + ");";
 
 }
 

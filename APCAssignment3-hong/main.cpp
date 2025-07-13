@@ -145,6 +145,7 @@ void instructor_ui(sqlite3* db, int myID)
 
 void admin_ui(sqlite3* db, int myID)
 {
+
 	char* messageError;
 
 	int check;
@@ -154,6 +155,8 @@ void admin_ui(sqlite3* db, int myID)
 	int choice; //user input choice
 
 	bool loop = true;
+
+	int exit;
 
 	//open the database
 
@@ -208,7 +211,14 @@ void admin_ui(sqlite3* db, int myID)
 		case 3:
 			//ADD Course
 			sqlcommands = adctrl.add_course();
-			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** Course Added **\n";
+			}
 			break;
 
 		case 4://issue
@@ -219,32 +229,67 @@ void admin_ui(sqlite3* db, int myID)
 		case 5:
 			//add user
 			sqlcommands = adctrl.add_user();
-			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** User Added **\n";
+			}
+
 			break;
 
 		case 6://issue
 			//remove user
 			sqlcommands = adctrl.remove_user();
-			sqlite3_exec(db, sqlcommands.c_str(), nullptr, nullptr, &messageError);
+			exit = sqlite3_exec(db, sqlcommands.c_str(), nullptr, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** User Removed **\n";
+			}
 			break;
 
 		case 7:
 			//Change Instructor to Course
 			sqlcommands = adctrl.link_instructor();
-			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** Instructor Connected **\n";
+			}
 			break;
 
 		case 8:
 			//Add/Remove student from Course
 			sqlcommands = adctrl.link_student();
-			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** Altered Schedule **\n";
+			}
 			break;
 		case 0:
 			//exit
 			loop = false;
 			break;
+
+		default:
+			cout << "** Invalid Option **" << endl;
+			break;
 		}
 	}
+
+	sqlcommands.clear();
 
 }
 
@@ -513,12 +558,12 @@ int main(int argc, char** argv)
 	while (true) {
 		string username;
 		cout << "Username (Q to quit): ";
-		getline(std::cin, username);
+		cin >> username;
 		if (username == "Q") break;
 
 		string password;
 		cout << "Password: ";
-		getline(std::cin, password);
+		cin >> password;
 
 		sqlite3_stmt* stmt;
 		sqlite3_prepare_v2(DB,
