@@ -38,6 +38,106 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 }
 
 
+void admin_ui(sqlite3* db, int myID)
+{
+	char* messageError;
+
+	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
+
+	int choice; //user input choice
+
+	bool loop = true;
+
+	Admin adctrl("Admin", "Astrator", 1, "astratora", "trap", "reddit"); //control admin
+
+	/*
+	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+		<< "1. Search Course (Default)" << endl
+		<< "2. Search Course (by Parameters)" << endl
+		<< "3. Add Course" << endl
+		<< "4. Remove Course" << endl
+		<< "5. Add User" << endl
+		<< "6. Remove User" << endl
+		<< "7. Change Instructor to Course" << endl
+		<< "8. Add/Remove student from Course" << endl << endl
+		<< "Choice: " << endl;
+
+	cin >> sqlcommands;
+	*/
+
+	while (loop)
+	{
+		cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+			<< "1. Search Course (Default)" << endl
+			<< "2. Search Course (by Parameters)" << endl
+			<< "3. Add Course" << endl
+			<< "4. Remove Course" << endl
+			<< "5. Add User" << endl
+			<< "6. Remove User" << endl
+			<< "7. Change Instructor to Course" << endl
+			<< "8. Add/Remove student from Course" << endl
+			<< "0. Exit" << endl << endl
+			<< "Choice: " << endl;
+
+		cin >> choice;
+
+		switch (choice)
+		{
+		case 1:
+			//prints all courses
+			sqlcommands = adctrl.print_course();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
+			break;
+
+		case 2:
+			//Does Search Default by CRN
+			sqlcommands = adctrl.search_courseD();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 3:
+			//ADD Course
+			sqlcommands = adctrl.add_course();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 4://issue
+			//Remove Course 
+			adctrl.remove_course();
+			break;
+
+		case 5:
+			//add user
+			sqlcommands = adctrl.add_user();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 6://issue
+			//remove user
+			adctrl.remove_user();
+			sqlite3_exec(db, sqlcommands.c_str(), nullptr, nullptr, &messageError);
+			break;
+
+		case 7:
+			//Change Instructor to Course
+			sqlcommands = adctrl.link_instructor();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 8:
+			//Add/Remove student from Course
+			sqlcommands = adctrl.link_student();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+		case 0:
+			//exit
+			loop = false;
+			break;
+		}
+	}
+	
+}
+
 int main(int argc, char** argv)
 {
 	const char* dir = "assignment3.db";
