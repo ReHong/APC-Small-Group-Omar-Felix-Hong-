@@ -147,11 +147,15 @@ void admin_ui(sqlite3* db, int myID)
 {
 	char* messageError;
 
+	int check;
+
 	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
 
 	int choice; //user input choice
 
 	bool loop = true;
+
+	//open the database
 
 	//Admin(string first, string last, int ID, string e, string t, string o) : User(first, last, ID, e)
 	Admin adctrl("Admin", "Astrator", myID, "astratora", "trap", "reddit"); //control admin
@@ -209,7 +213,7 @@ void admin_ui(sqlite3* db, int myID)
 
 		case 4://issue
 			//Remove Course 
-			adctrl.remove_course();
+			adctrl.remove_course(db);
 			break;
 
 		case 5:
@@ -220,7 +224,7 @@ void admin_ui(sqlite3* db, int myID)
 
 		case 6://issue
 			//remove user
-			adctrl.remove_user();
+			sqlcommands = adctrl.remove_user();
 			sqlite3_exec(db, sqlcommands.c_str(), nullptr, nullptr, &messageError);
 			break;
 
@@ -399,17 +403,71 @@ int main(int argc, char** argv)
 		cout << "LOGIN table created successfully\n";
 	}
 
-	const char* seedLogin =
+	const char* seedLogin = //default loggins
 		"INSERT OR IGNORE INTO LOGIN VALUES "
-		"('admin1','pass123','ADMIN',      30001),"
-		"('fourierj', 'inst1', 'INSTRUCTOR', 20001),"
-		"('stud1', 'ilovecpp','STUDENT',   10001);";
+		"('hamiltonm','pass123','ADMIN',30001),"
+		"('rubinv','MysoultoWIT2022','ADMIN',30002),"
+
+		"('fourierj','MysoultoWIT2022','INSTRUCTOR',20001),"
+		"('patrickn','MysoultoWIT2022','INSTRUCTOR',20002),"
+		"('galileig','MysoultoWIT2022','INSTRUCTOR',20003),"
+		"('turinga','MysoultoWIT2022','INSTRUCTOR',20004),"
+		"('boumank','MysoultoWIT2022','INSTRUCTOR',20005),"
+		"('bernoulid','MysoultoWIT2022','INSTRUCTOR',20006),"
+		"('stalinj','MysoultoWIT2022','INSTRUCTOR',20007),"
+		"('zengelk','MysoultoWIT2022','INSTRUCTOR',20008),"
+		"('carlose','MysoultoWIT2022','INSTRUCTOR',20009),"
+		"('fortnera','MysoultoWIT2022','INSTRUCTOR',20010),"
+		"('pernellik','MysoultoWIT2022','INSTRUCTOR',20011),"
+		"('astrayd','MysoultoWIT2022','INSTRUCTOR',20012),"
+		"('hopnerj','MysoultoWIT2022','INSTRUCTOR',20013),"
+		"('gibsn','MysoultoWIT2022','INSTRUCTOR',20014),"
+		"('notnere','MysoultoWIT2022','INSTRUCTOR',20015),"
+
+		"('newtoni','MysoultoWIT2022','STUDENT',10001),"
+		"('curiem','MysoultoWIT2022','STUDENT',10002),"
+		"('teslan','MysoultoWIT2022','STUDENT',10003),"
+		"('edisont','MysoultoWIT2022','STUDENT',10004),"
+		"('vonneumanj','MysoultoWIT2022','STUDENT',10005),"
+		"('hopperg','MysoultoWIT2022','STUDENT',10006),"
+		"('jamisonm','MysoultoWIT2022','STUDENT',10007),"
+		"('deanm','MysoultoWIT2022','STUDENT',10008),"
+		"('faradaym','MysoultoWIT2022','STUDENT',10009),"
+		"('lovelacea','MysoultoWIT2022','STUDENT',10010),"
+		"('smitha','MysoultoWIT2022','STUDENT',10011),"
+		"('smithd','MysoultoWIT2022','STUDENT',10012),"
+		"('hopperj','MysoultoWIT2022','STUDENT',10013),"
+		"('jacksons','MysoultoWIT2022','STUDENT',10014),"
+		"('lec','MysoultoWIT2022','STUDENT',10015),"
+		"('kimbleyj','MysoultoWIT2022','STUDENT',10016),"
+		"('floresw','MysoultoWIT2022','STUDENT',10017),"
+		"('milordc','MysoultoWIT2022','STUDENT',10018),"
+		"('gonzalez','MysoultoWIT2022','STUDENT',10019),"
+		"('luuh','MysoultoWIT2022','STUDENT',10020);"
+		;
+
+	//for all logins made by Hong
+	//failed because I have no idea how
+	string email;
+	string password = "MysoultoWIT2022";
+	string role;
+	int IDtag;
+	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
+
+	const char* stu = "SELECT EMAIL, ID FROM STUDENT WHERE ID = ?;";
+	const char* ins = "SELECT EMAIL, ID FROM INSTRUCTOR WHERE ID = ?;";
+	const char* adm = "SELECT EMAIL, ID FROM ADMIN WHERE ID = ?;";
+
+
 
 
 	exit = sqlite3_exec(DB, seedLogin, nullptr, nullptr, &messageError);
 	if (exit != SQLITE_OK) {
 		cerr << "Seeding LOGIN failed: " << messageError << '\n';
 		sqlite3_free(messageError);
+	}
+	else {
+		cout << "Seed table created successfully\n";
 	}
 
 	string queryClasses = R"(
@@ -430,21 +488,11 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		cout << "Sucess Implementation" << std::endl;
+		cout << "Query Sucess Implementation" << std::endl;
 	}
 
 	//tables are all set from above
 	/**********************************************************************************************************************************/
-
-	/*
-	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
-	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
-	sqlite3_step(stmt); //run it
-	sqlite3_finalize(stmt); //save
-	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
-	*/
-
-	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
 
 	const char* sqlC = "DELETE FROM COURSE WHERE ID = ?;";
 
@@ -460,20 +508,6 @@ int main(int argc, char** argv)
 
 	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); //control student
 
-	/*
-	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
-		<< "1. Search Course (Default)" << endl
-		<< "2. Search Course (by Parameters)" << endl
-		<< "3. Add Course" << endl
-		<< "4. Remove Course" << endl
-		<< "5. Add User" << endl
-		<< "6. Remove User" << endl
-		<< "7. Change Instructor to Course" << endl
-		<< "8. Add/Remove student from Course" << endl << endl
-		<< "Choice: " << endl;
-
-	cin >> sqlcommands;
-	*/
 
 	// Login/logout loop --> made by Omar
 	while (true) {

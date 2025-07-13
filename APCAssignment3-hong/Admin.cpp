@@ -123,7 +123,7 @@ string Admin::add_course() //work in progress
 	//"INSERT INTO COURSE VALUES(50008, 'Engrish', 'BSEE', '8:00 - 10:00 AM', 8, 10, 'M W F', 'Fall', 2022, 4, NULL);
 	return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '"
 		+ t + "', " + ti + ", " + te + ", '" + dw + "', '" + sem + "', " + year
-		+ ", " + instructID + ")"; //related insert to the previous comment
+		+ ", " + instructID + ");"; //related insert to the previous comment
 	//return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '" + t + "', '" + dw + "', '" + sem + "', " + year + ", " + instructID + ")";
 }
 
@@ -150,12 +150,8 @@ string Admin::add_course() //work in progress
 
 */
 
-int Admin::remove_course()
+int Admin::remove_course(sqlite3* db)
 {
-
-	sqlite3* DB;
-	sqlite3_open("assignment3.db", &DB);
-	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
 
 	const char* sqlD = "DELETE FROM COURSE WHERE CRN = ?;";
 	sqlite3_stmt* stmt;
@@ -165,7 +161,7 @@ int Admin::remove_course()
 	cout << "ENTER CRN for Deletion: ";
 	cin >> choice;
 
-	if (sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL) == SQLITE_OK)
+	if (sqlite3_prepare_v2(db, sqlD, -1, &stmt, NULL) == SQLITE_OK)
 	{
 		sqlite3_bind_int(stmt, 1, choice);
 		if (sqlite3_step(stmt) == SQLITE_DONE)
@@ -183,7 +179,6 @@ int Admin::remove_course()
 		cout << "** Failed Erase **" << endl;
 	}
 
-	sqlite3_close(DB);
 	return choice;
 }
 
@@ -207,10 +202,11 @@ string Admin::add_user() {
 			<< "2. Instructor " << endl
 			<< "3. Student " << endl;
 		cin >> user;
-		if ((0 < user) && (user < 4))
-		{
+		if ((user > 0) && (user < 4)) {
+			reg = false; // Valid input, break loop
+		}
+		else {
 			cout << "** ERROR User Choice Try Again **" << endl;
-			reg = false;
 		}
 	}
 

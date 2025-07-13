@@ -13,7 +13,7 @@ class Admin :
 public:
 	Admin(string first, string last, int ID, string e, string t, string o);
 	string add_course();
-	int remove_course();
+	int remove_course(sqlite3* db);
 
 	string add_user();
 	string remove_user();
