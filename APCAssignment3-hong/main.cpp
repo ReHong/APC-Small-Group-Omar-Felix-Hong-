@@ -597,7 +597,6 @@ int main(int argc, char** argv)
 		}
 	}
 	sqlite3_close(DB);
-
 	return 0;
 }
 
