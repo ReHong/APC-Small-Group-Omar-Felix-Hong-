@@ -16,6 +16,7 @@ using std::ifstream;  //read data from a file
 
 using namespace std;
 
+
 /*************************************************************************************************
  The callback() function is invoked for each result row coming out of the evaluated SQL statement
  1st argument - the 4th argument provided by sqlite3_exec() and is typically not used
@@ -37,6 +38,110 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 	return 0;
 }
 
+//helper function made by Omar
+bool authenticate(sqlite3* db,
+	const std::string& user,
+	const std::string& pass,
+	std::string& roleOut,
+	int& idOut)
+{
+	const char* sql =
+		"SELECT ROLE, USER_ID "
+		"FROM LOGIN "
+		"WHERE USERNAME = ?1 AND PASSWORD = ?2;";
+
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+		return false;
+
+	sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 2, pass.c_str(), -1, SQLITE_STATIC);
+
+	bool ok = (sqlite3_step(stmt) == SQLITE_ROW);
+	if (ok) {
+		roleOut = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		idOut = sqlite3_column_int(stmt, 1);
+	}
+	sqlite3_finalize(stmt);
+	return ok;
+}
+
+// Instructor console menu would not work correctly in a cpp and header file - Omar 
+static int print_cb(void*, int n, char** v, char**)
+{
+	for (int i = 0; i < n; ++i)
+		std::cout << (v[i] ? v[i] : "NULL") << '\t';
+	std::cout << '\n';
+	return 0;
+}
+
+void instructor_ui(sqlite3* db, int myID)
+{
+	bool done = false;
+	char* err = nullptr;
+	int  rc;
+	std::string sql;
+
+	while (!done)
+	{
+		std::cout << "\nInstructor Menu\n"
+			<< "1  View my schedule\n"
+			<< "2  Print a course roster\n"
+			<< "3  Search a student in my classes\n"
+			<< "0  Log out\n"
+			<< "Choice: ";
+		int ch;  std::cin >> ch;
+
+		switch (ch)
+		{
+		case 1:   // schedule
+			sql = "SELECT CRN, TITLE, TIMES, DofW, "
+				"SEMESTER||' '||YEAR "
+				"FROM  COURSE "
+				"WHERE INSTRUCTOR_ID = " + std::to_string(myID) + ';';
+			std::cout << "\nCRN\tTitle\tTimes\tDays\tTerm\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+
+		case 2: { // roster
+			int crn;  std::cout << "CRN: ";  std::cin >> crn;
+			sql = "SELECT s.Student_ID, st.NAME, st.SURNAME "
+				"FROM   SCHEDULE s "
+				"JOIN   STUDENT  st ON st.ID = s.Student_ID "
+				"WHERE  s.Course_ID = " + std::to_string(crn) +
+				" AND   EXISTS(SELECT 1 FROM COURSE c "
+				"             WHERE c.CRN = s.Course_ID "
+				"               AND c.INSTRUCTOR_ID = " + std::to_string(myID) + ");";
+			std::cout << "\nID\tFirstName\tLastName\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+		}
+
+		case 3: { // student search
+			int sid;  std::cout << "Student ID: ";  std::cin >> sid;
+			sql = "SELECT c.CRN, c.TITLE "
+				"FROM   COURSE  c "
+				"JOIN   SCHEDULE s ON s.Course_ID = c.CRN "
+				"WHERE  c.INSTRUCTOR_ID = " + std::to_string(myID) +
+				" AND   s.Student_ID   = " + std::to_string(sid) + ';';
+			std::cout << "\nCourses that student " << sid << " takes with you:\n"
+				<< "CRN\tTitle\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+		}
+
+		case 0:
+			done = true;                     // leave menu ? log out
+			break;
+
+		default:
+			std::cout << "Invalid choice.\n";
+		}
+	}
+}
 
 void admin_ui(sqlite3* db, int myID)
 {
@@ -48,7 +153,8 @@ void admin_ui(sqlite3* db, int myID)
 
 	bool loop = true;
 
-	Admin adctrl("Admin", "Astrator", 1, "astratora", "trap", "reddit"); //control admin
+	//Admin(string first, string last, int ID, string e, string t, string o) : User(first, last, ID, e)
+	Admin adctrl("Admin", "Astrator", myID, "astratora", "trap", "reddit"); //control admin
 
 	/*
 	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
@@ -135,8 +241,24 @@ void admin_ui(sqlite3* db, int myID)
 			break;
 		}
 	}
-	
+
 }
+
+//Omar's function for using database
+void execute(sqlite3* DB, const char* sql) {
+	char* err = nullptr;
+	if (sqlite3_exec(DB, sql, nullptr, nullptr, &err) != SQLITE_OK) {
+		std::cerr << "SQL error: " << err << '\n';
+		sqlite3_free(err);
+	}
+}
+
+// - Omar Code that will be transferred later 
+void instructor_ui(sqlite3* db, int instructorID); // Instead of making a whole other file just for this
+
+// I also did the same with admin -Hong
+void admin_ui(sqlite3* db, int instructorID);
+
 
 int main(int argc, char** argv)
 {
@@ -256,191 +378,40 @@ int main(int argc, char** argv)
 		cout << "Table created Successfully" << std::endl;
 	}
 
-	/*
-	string sql(
-		
-		"INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
-		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
-
-		"INSERT INTO INSTRUCTOR VALUES(20001, 'Joseph', 'Fourier', 'Full Prof.', 1820, 'BSEE', 'fourierj');"
-		"INSERT INTO INSTRUCTOR VALUES(20002, 'Nelson', 'Patrick', 'Full Prof.', 1994, 'ENGL', 'patrickn');"
-		"INSERT INTO INSTRUCTOR VALUES(20003, 'Galileo', 'Galilei', 'Full Prof.', 1600, 'SCIE', 'galileig');"
-		"INSERT INTO INSTRUCTOR VALUES(20004, 'Alan', 'Turing', 'Associate Prof.', 1940, 'BSCO', 'turinga');"
-		"INSERT INTO INSTRUCTOR VALUES(20005, 'Katie', 'Bouman', 'Associate Prof.', 2019, 'BCOS', 'boumank');"
-		"INSERT INTO INSTRUCTOR VALUES(20006, 'Daniel', 'Bernouli', 'Associate Prof.', 1760, 'MECH', 'bernoulid');"
-		"INSERT INTO INSTRUCTOR VALUES(20007, 'Joseph', 'Stalin', 'Full Prof.', 1940, 'ENGL', 'stalinj');"//
-		"INSERT INTO INSTRUCTOR VALUES(20008, 'Keith', 'Zengel', 'Full Prof.', 1994, 'SCIE', 'zengelk');"
-		"INSERT INTO INSTRUCTOR VALUES(20009, 'Estaban', 'Carlos', 'Full Prof.', 1989, 'ARCH', 'carlose');"
-		"INSERT INTO INSTRUCTOR VALUES(20010, 'Alan', 'Fortner', 'Associate Prof.', 1982, 'BSCO', 'fortnera');"
-		"INSERT INTO INSTRUCTOR VALUES(20011, 'Katie', 'Pernelli', 'Associate Prof.', 2009, 'MATH', 'pernellik');"
-		"INSERT INTO INSTRUCTOR VALUES(20012, 'Daniel', 'Astray', 'Associate Prof.', 2001, 'COMP', 'astrayd');"
-		"INSERT INTO INSTRUCTOR VALUES(20013, 'Hopner', 'Jones', 'Full Prof.', 2002, 'COMP', 'hopnerj');"
-		"INSERT INTO INSTRUCTOR VALUES(20014, 'Nell', 'Gibs', 'Full Prof.', 1978, 'ENGL', 'gibsn');"
-		"INSERT INTO INSTRUCTOR VALUES(20015, 'Eathon', 'Notner', 'Full Prof.', 1987, 'MATH', 'notnere');"
-
-		"INSERT INTO STUDENT VALUES(10001, 'Isaac', 'Newton', 1668, 'SCIE', 'newtoni');"
-		"INSERT INTO STUDENT VALUES(10002, 'Marie', 'Curie', 1903, 'ENGL', 'curiem');"
-		"INSERT INTO STUDENT VALUES(10003, 'Nikola', 'Tesla', 1878, 'ELEC', 'teslan');"
-		"INSERT INTO STUDENT VALUES(10004, 'Thomas', 'Edison', 1879, 'ELEC', 'edisont');"
-		"INSERT INTO STUDENT VALUES(10005, 'John', 'von Neumann', 1923, 'MATH', 'vonneumanj');"
-		"INSERT INTO STUDENT VALUES(10006, 'Grace', 'Hopper', 1928, 'SCIE', 'hopperg');"
-		"INSERT INTO STUDENT VALUES(10007, 'Mae', 'Jemison', 1981, 'ENGL', 'jamisonm');"
-		"INSERT INTO STUDENT VALUES(10008, 'Mark', 'Dean', 1979, 'MECH', 'deanm');"
-		"INSERT INTO STUDENT VALUES(10009, 'Michael', 'Faraday', 1824, 'SCIE', 'faradaym');"
-		"INSERT INTO STUDENT VALUES(10010, 'Ada', 'Lovelace', 1832, 'MECH', 'lovelacea');"
-		"INSERT INTO STUDENT VALUES(10011, 'Angela', 'Smith', 1832, 'ELEC', 'smitha');"
-		"INSERT INTO STUDENT VALUES(10012, 'David', 'Smith', 1832, 'ELEC', 'smithd');"
-		"INSERT INTO STUDENT VALUES(10013, 'John', 'Hopper', 1832, 'BCOS', 'hopperj');"
-		"INSERT INTO STUDENT VALUES(10014, 'Samuel', 'Jackson', 1832, 'BCOS', 'jacksons');"
-		"INSERT INTO STUDENT VALUES(10015, 'Chris', 'Le', 2022, 'BSCO', 'lec');"
-		"INSERT INTO STUDENT VALUES(10016, 'Johnathan', 'Kimbley', 2021, 'MATH', 'kimbleyj');"
-		"INSERT INTO STUDENT VALUES(10017, 'William', 'Flores', 2020, 'MECH', 'floresw');"
-		"INSERT INTO STUDENT VALUES(10018, 'Christian', 'Milord', 2022, 'COMP', 'milordc');"
-		"INSERT INTO STUDENT VALUES(10019, 'Jeury', 'Gonzalez', 2023, 'ARCH', 'gonzalez');"
-		"INSERT INTO STUDENT VALUES(10020, 'Hong', 'Luu', 2022, 'BSCO', 'luuh');"
-		
-		//main issue is that this is not being used
-		"INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'TR', 'Fall', 2022, 4, 20002);"
-		"INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20007);"
-		"INSERT INTO COURSE VALUES(50003, 'English III', 'ENGL', '2:00 - 4:00 PM', 14, 16, 'MW', 'Fall', 2022, 4, 20014);"
-		"INSERT INTO COURSE VALUES(50004, 'Calculus I', 'MATH', '8:00 - 9:45 AM', 8, 10, 'WF', 'Fall', 2022, 4, 20011);"
-		"INSERT INTO COURSE VALUES(50005, 'Calculus II', 'MATH', '10:00 - 11:45 AM', 10, 12, 'MF', 'Fall', 2022, 4, 20015);"
-		"INSERT INTO COURSE VALUES(50006, 'Calculus III', 'MATH', '2:00 - 4:00 PM', 14, 16, 'WF', 'Fall', 2022, 4, 20011);"
-		"INSERT INTO COURSE VALUES(50007, 'Physics I', 'SCIE', '8:00 - 9:45 AM', 8, 10, 'MF', 'Fall', 2022, 4, 20008);"
-		"INSERT INTO COURSE VALUES(50008, 'Physics II', 'SCIE', '10:00 - 11:45 AM', 10, 12, 'MF', 'Fall', 2022, 4, 20003);"
-		"INSERT INTO COURSE VALUES(50009, 'Physics III', 'SCIE', '2:00 - 4:00 PM', 14, 16, 'WF', 'Fall', 2022, 4, 20008);"
-		"INSERT INTO COURSE VALUES(50010, 'Computer Programming I', 'COMP', '8:00 - 10:00 AM', 8, 10, 'TF', 'Fall', 2022, 4, 20012);"
-		"INSERT INTO COURSE VALUES(50011, 'Computer Programming II', 'COMP', '10:00 - 11:46 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20013);"
-		"INSERT INTO COURSE VALUES(50012, 'Computer Programming III', 'COMP', '2:00 - 4:00 PM', 14, 16, 'WR', 'Fall', 2022, 4, 20012);"
-		"INSERT INTO COURSE VALUES(50013, 'Mechanics', 'MECH', '8:00 - 10:00 AM', 8, 10, 'MR', 'Spring', 2022, 4, 20006);"
-		"INSERT INTO COURSE VALUES(50014, 'Mechanics', 'MECH', '1:00 - 3:00 PM', 13, 15, 'MW', 'Spring', 2022, 4, 20006);"
-		"INSERT INTO COURSE VALUES(50015, 'Circuit Theory I', 'ELEC', '8:00 - 9:45 AM', 8, 10, 'TR', 'Spring', 2022, 4, 20001);"
-		"INSERT INTO COURSE VALUES(50016, 'Circuit Theory II', 'ELEC', '10:00 - 11:45 AM', 10, 12, 'MW', 'Spring', 2022, 4, 20001);"
-		"INSERT INTO COURSE VALUES(50017, 'Circuit Theory I Lab', 'ELEC', '8:00 - 10:00 AM', 8, 10, 'F', 'Spring', 2022, 4, 20001);"
-		"INSERT INTO COURSE VALUES(50018, 'Circuit Theory II Lab', 'ELEC', '1:00 - 3:00 PM', 13, 15, 'R', 'Spring', 2022, 4, 20001);"
-		"INSERT INTO COURSE VALUES(50019, 'Architecture Assembly', 'ARCH', '2:00 - 4:00 PM', 14, 16, 'TF', 'Spring', 2022, 4, 20009);"
-		"INSERT INTO COURSE VALUES(50020, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'TR', 'Spring', 2022, 4, 20009);"
-		"INSERT INTO COURSE VALUES(50021, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'TR', 'Spring', 2022, 4, 20009);"
-	);
-
-	exit = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &messageError);
-
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Data Fail" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-	{
-		cout << "Data Successfully Inserted" << std::endl;
-	}
-	
-	
-	string queryLogin = R"(
-		SELECT g.name AS disliked_game
-		FROM Player p
-		JOIN PlayerDislikes pd ON p.id = pd.player_id
-		JOIN Game g ON pd.game_id = g.id
-		WHERE p.username = 'ReHong';
-		)";
-	
-
-	//database is not saved yet
-	//main issue is that this is not being used
-	//
-
-	/*
-	string reset = "DELETE FROM COURSE;";
-
-	exit = sqlite3_exec(DB, reset.c_str(), nullptr, nullptr, &messageError);
-
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Data Fail" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-	{
-		cout << "Data Erased" << std::endl;
-	}
-	*/
-
-	/*
-	sql = R"(
-		INSERT INTO COURSE VALUES(50001, 'English I', 'ENGL', '8:00 - 9:45 AM', 8, 10, 'TR', 'Fall', 2022, 4, 20002);
-		INSERT INTO COURSE VALUES(50002, 'English II', 'ENGL', '10:00 - 11:45 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20007);
-		INSERT INTO COURSE VALUES(50003, 'English III', 'ENGL', '2:00 - 4:00 PM', 14, 16, 'MW', 'Fall', 2022, 4, 20014);
-		INSERT INTO COURSE VALUES(50004, 'Calculus I', 'MATH', '8:00 - 9:45 AM', 8, 10, 'WF', 'Fall', 2022, 4, 20011);
-		INSERT INTO COURSE VALUES(50005, 'Calculus II', 'MATH', '10:00 - 11:45 AM', 10, 12, 'MF', 'Fall', 2022, 4, 20015);
-		INSERT INTO COURSE VALUES(50006, 'Calculus III', 'MATH', '2:00 - 4:00 PM', 14, 16, 'WF', 'Fall', 2022, 4, 20011);
-		INSERT INTO COURSE VALUES(50007, 'Physics I', 'SCIE', '8:00 - 9:45 AM', 8, 10, 'MF', 'Fall', 2022, 4, 20008);
-		INSERT INTO COURSE VALUES(50008, 'Physics II', 'SCIE', '10:00 - 11:45 AM', 10, 12, 'MF', 'Fall', 2022, 4, 20003);
-		INSERT INTO COURSE VALUES(50009, 'Physics III', 'SCIE', '2:00 - 4:00 PM', 14, 16, 'WF', 'Fall', 2022, 4, 20008);
-		INSERT INTO COURSE VALUES(50010, 'Computer Programming I', 'COMP', '8:00 - 10:00 AM', 8, 10, 'TF', 'Fall', 2022, 4, 20012);
-		INSERT INTO COURSE VALUES(50011, 'Computer Programming II', 'COMP', '10:00 - 11:46 AM', 10, 12, 'TR', 'Fall', 2022, 4, 20013);
-		INSERT INTO COURSE VALUES(50012, 'Computer Programming III', 'COMP', '2:00 - 4:00 PM', 14, 16, 'WR', 'Fall', 2022, 4, 20012);
-		INSERT INTO COURSE VALUES(50013, 'Mechanics', 'MECH', '8:00 - 10:00 AM', 8, 10, 'MR', 'Spring', 2022, 4, 20006);
-		INSERT INTO COURSE VALUES(50014, 'Mechanics', 'MECH', '1:00 - 3:00 PM', 13, 15, 'MW', 'Spring', 2022, 4, 20006);
-		INSERT INTO COURSE VALUES(50015, 'Circuit Theory I', 'ELEC', '8:00 - 9:45 AM', 8, 10, 'TR', 'Spring', 2022, 4, 20001);
-		INSERT INTO COURSE VALUES(50016, 'Circuit Theory II', 'ELEC', '10:00 - 11:45 AM', 10, 12, 'MW', 'Spring', 2022, 4, 20001);
-		INSERT INTO COURSE VALUES(50017, 'Circuit Theory I Lab', 'ELEC', '8:00 - 10:00 AM', 8, 10, 'F', 'Spring', 2022, 4, 20001);
-		INSERT INTO COURSE VALUES(50018, 'Circuit Theory II Lab', 'ELEC', '1:00 - 3:00 PM', 13, 15, 'R', 'Spring', 2022, 4, 20001);
-		INSERT INTO COURSE VALUES(50019, 'Architecture Assembly', 'ARCH', '2:00 - 4:00 PM', 14, 16, 'TF', 'Spring', 2022, 4, 20009);
-		INSERT INTO COURSE VALUES(50020, 'Visual Parameters', 'ARCH', '10:00 - 11:45 AM', 10, 12, 'TR', 'Spring', 2022, 4, 20009);
+	//Omar's portion of the code with the logins (cleaned up in order by Hong)
+	string tableLogin = R"(
+    CREATE TABLE IF NOT EXISTS LOGIN (
+        USERNAME TEXT PRIMARY KEY,
+        PASSWORD TEXT NOT NULL,
+        ROLE     TEXT NOT NULL CHECK (ROLE IN ('ADMIN','INSTRUCTOR','STUDENT')),
+        USER_ID  INTEGER NOT NULL
+		);
 	)";
 
-	exit = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &messageError);
+	exit = sqlite3_exec(DB, tableLogin.c_str(), nullptr, nullptr, &messageError);
 
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Data Fail" << std::endl;
+
+	if (exit != SQLITE_OK) {
+		cerr << "Error creating LOGIN table: " << messageError << '\n';
 		sqlite3_free(messageError);
 	}
-	else
-	{
-		cout << "Data Successfully Inserted" << std::endl;
+	else {
+		cout << "LOGIN table created successfully\n";
 	}
-	*/
-/*
-	string sql = R"(
-		BEGIN TRANSACTION;
-		INSERT INTO SCHEDULE(Course_ID, Student_ID) VALUES
-		(50001, 10001),
-		(50002, 10002),
-		(50003, 10003),
-		(50004, 10004),
-		(50005, 10005),
-		(50006, 10006),
-		(50007, 10007),
-		(50008, 10008),
-		(50009, 10009),
-		(50010, 10010),
-		(50011, 10011),
-		(50012, 10012),
-		(50013, 10013),
-		(50014, 10014),
-		(50015, 10015),
-		(50016, 10016),
-		(50017, 10017),
-		(50018, 10018),
-		(50019, 10019),
-		(50020, 10020);
-		COMMIT;
-	)";
 
-	exit = sqlite3_exec(DB, sql.c_str(), nullptr, nullptr, &messageError);
+	const char* seedLogin =
+		"INSERT OR IGNORE INTO LOGIN VALUES "
+		"('admin1','pass123','ADMIN',      30001),"
+		"('fourierj', 'inst1', 'INSTRUCTOR', 20001),"
+		"('stud1', 'ilovecpp','STUDENT',   10001);";
 
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Data Fail" << std::endl;
+
+	exit = sqlite3_exec(DB, seedLogin, nullptr, nullptr, &messageError);
+	if (exit != SQLITE_OK) {
+		cerr << "Seeding LOGIN failed: " << messageError << '\n';
 		sqlite3_free(messageError);
 	}
-	else
-	{
-		cout << "Data Successfully Inserted" << std::endl;
-	}
-	
-	*/
+
 	string queryClasses = R"(
 		SELECT c.CRN, c.TITLE
 		FROM COURSE c
@@ -504,74 +475,46 @@ int main(int argc, char** argv)
 	cin >> sqlcommands;
 	*/
 
-	while (loop)
-	{
-		cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
-			<< "1. Search Course (Default)" << endl
-			<< "2. Search Course (by Parameters)" << endl
-			<< "3. Add Course" << endl
-			<< "4. Remove Course" << endl
-			<< "5. Add User" << endl
-			<< "6. Remove User" << endl
-			<< "7. Change Instructor to Course" << endl
-			<< "8. Add/Remove student from Course" << endl
-			<< "0. Exit" << endl << endl
-			<< "Choice: " << endl;
+	// Login/logout loop --> made by Omar
+	while (true) {
+		string username;
+		cout << "Username (Q to quit): ";
+		getline(std::cin, username);
+		if (username == "Q") break;
 
-		cin >> choice;
+		string password;
+		cout << "Password: ";
+		getline(std::cin, password);
 
-		switch (choice)
-		{
-		case 1:
-			//prints all courses
-			sqlcommands = adctrl.print_course();
-			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
-			break;
+		sqlite3_stmt* stmt;
+		sqlite3_prepare_v2(DB,
+			"SELECT ROLE, USER_ID FROM LOGIN WHERE USERNAME=? AND PASSWORD=?;",
+			-1, &stmt, nullptr);
+		sqlite3_bind_text(stmt, 1, username.c_str(), -1, nullptr);
+		sqlite3_bind_text(stmt, 2, password.c_str(), -1, nullptr);
 
-		case 2:
-			//Does Search Default by CRN
-			sqlcommands = adctrl.search_courseD();
-			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
-			break;
+		if (sqlite3_step(stmt) == SQLITE_ROW) {
+			std::string role = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+			int userID = sqlite3_column_int(stmt, 1);
+			sqlite3_finalize(stmt);
 
-		case 3:
-			//ADD Course
-			sqlcommands = adctrl.add_course();
-			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
-			break;
+			if (role == "INSTRUCTOR") {
+				instructor_ui(DB, userID);
+			}
+			else if (role == "ADMIN") //Hong's Addition
+			{
+				admin_ui(DB, userID);
+			}
+			/* student UI here
+			else if (role == "STUDENT")
+			{
 
-		case 4://issue
-			//Remove Course 
-			adctrl.remove_course();
-			break;
-
-		case 5:
-			//add user
-			sqlcommands = adctrl.add_user();
-			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
-			break;
-
-		case 6://issue
-			//remove user
-			adctrl.remove_user();
-			sqlite3_exec(DB, sqlcommands.c_str(), nullptr, nullptr, &messageError);
-			break;
-
-		case 7:
-			//Change Instructor to Course
-			sqlcommands = adctrl.link_instructor();
-			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
-			break;
-
-		case 8:
-			//Add/Remove student from Course
-			sqlcommands = adctrl.link_student();
-			sqlite3_exec(DB, sqlcommands.c_str(), callback, nullptr, &messageError);
-			break;
-		case 0:
-			//exit
-			loop = false;
-			break;
+			}
+			*/
+		}
+		else {
+			std::cout << "Invalid credentials.\n";
+			sqlite3_finalize(stmt);
 		}
 	}
 	sqlite3_close(DB);
