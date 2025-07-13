@@ -6,33 +6,20 @@
 #include <cstdlib>
 #include <iostream>
 
-Student::Student(string first, string last, int ID, string e, int g, string m) : User(first,last,ID,e) 
-{
+Student::Student(string first, string last, int ID, string e, int g, string m) : User(first,last,ID,e) {
 	gradYear = g;
 	major = m;
 }
 
 //Method
+
+
 string Student::add_remove_course() {
-    const char* dir = "assignment3.db";
-
-    sqlite3* DB;
-    int exit = sqlite3_open("assignment3.db", &DB);		//open the database
-
-    sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
-
-    char* messageError;
 
 	string CRN; //Course CRN Number
 	string ID; //Student's ID
 
 	int choice = 0;
-
-    int Student_ID;
-    string Course_ID;
-    string DofW;
-    string start_time;
-    string end_time;
 
 	while ((choice != 1) && (choice != 2)) {
 
@@ -63,38 +50,36 @@ string Student::add_remove_course() {
             const std::string & Course_ID,
             const std::string & DofW,
             const std::string & start_time,
-            const std::string & end_time);
+            const std::string & end_time) {
+            sqlite3_stmt* stmt;
+            const char* sql = R"(
+        INSERT INTO Schedule (Student_ID, Course_ID, DofW, STARTTIME, TIMEEND)
+        SELECT ?, ?, ?, ?, ?
+        WHERE NOT EXISTS (
+        SELECT 1 FROM SCHEDULE
+        WHERE Student_ID = ?
+        AND DofW = ?
+        AND ? < TIMEEND
+        AND ? > TIMESTART
+        );
+    )";
 
-        sqlite3_stmt* stmt;
-        const char* sql = R"(
-                INSERT INTO Schedule (Student_ID, Course_ID, DofW, STARTTIME, TIMEEND)
-                SELECT ?, ?, ?, ?, ?
-                WHERE NOT EXISTS (
-                SELECT 1 FROM SCHEDULE
-                WHERE Student_ID = ?
-                AND DofW = ?
-                AND ? < TIMEEND
-                AND ? > TIMESTART
-                );
-            )";
-
-            if (sqlite3_prepare_v2(DB, sql, -1, &stmt, nullptr) != SQLITE_OK) 
-            {
+            if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
                 std::cerr << "Failed to prepare INSERT statement.\n";
                 return false;
             }
 
-            // Bind values to both INSERT and subqueries 
+            // Bind values to both INSERT and subqueries
             sqlite3_bind_int(stmt, 1, Student_ID);
             sqlite3_bind_text(stmt, 2, Course_ID.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 3, DofW.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 4, start_time.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 5, end_time.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 4, TIMESTART.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 5, TIMEEND.c_str(), -1, SQLITE_STATIC);
 
             sqlite3_bind_int(stmt, 6, Student_ID);         // subquery student_id
             sqlite3_bind_text(stmt, 7, DofW.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 8, start_time.c_str(), -1, SQLITE_STATIC); // new_start < existing_end
-            sqlite3_bind_text(stmt, 9, end_time.c_str(), -1, SQLITE_STATIC);   // new_end > existing_start
+            sqlite3_bind_text(stmt, 8, TIMESTART.c_str(), -1, SQLITE_STATIC); // new_start < existing_end
+            sqlite3_bind_text(stmt, 9, TIMEEND.c_str(), -1, SQLITE_STATIC);   // new_end > existing_start
 
             bool inserted = (sqlite3_step(stmt) == SQLITE_DONE);
             sqlite3_finalize(stmt);
@@ -106,19 +91,22 @@ string Student::add_remove_course() {
                 std::cout << "Conflict detected. Course not added.\n";
             }
 
-    
-        
+            return inserted;
+        }
 
       
 
-		return "INSERT INTO SCHEDULE (Course_ID, Student_ID) VALUES (" + CRN + ", " + ID + ");"; 
+		return "INSERT INTO SCHEDULE (Course_ID, Student_ID) VALUES (" + CRN + ", " + ID + ");";
 		break;
 
     case 2: //This will remove course from the schedule
 
 		return "DELETE FROM SCHEDULE (Course_ID, Student_ID) VALUES (" + CRN + ", " + ID + ");";
-        break;
+
 	}
+
+
+	return CRN;
 
 } 
 
@@ -131,6 +119,12 @@ string Student::print_course() {
 	
 	cout << "This is your schedule: " << endl;
 	return sql;
+}
+
+string Student::check_confliction() {
+
+    
+
 }
 
 //Destructor
