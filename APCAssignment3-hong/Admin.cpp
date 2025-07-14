@@ -8,6 +8,7 @@
 
 using namespace std; //thanks geeksforgeeks
 
+//Everything here and modified by Hong
 
 static int callback(void* data, int argc, char** argv, char** azColName)
 {
@@ -78,14 +79,14 @@ string Admin::add_course() //work in progress
 		cin >> tei;
 
 
-		if (tei > 12)
+		if (tei > 12) //check and sets time accordingly
 		{
-			if (tii > 12)
+			if (tii > 12) //when tii is greater than tei
 			{
 				tl1 = to_string(tii-12);
 				tl2 = to_string(tei-12);
 			}
-			else
+			else //only tei greater than 12
 			{
 				tl1 = to_string(tii);
 				tl2 = to_string(tei-12);

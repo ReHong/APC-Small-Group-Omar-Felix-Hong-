@@ -16,7 +16,7 @@ Student::Student(string first, string last, int ID, string e, int g, string m) :
 }
 
 //Method
-string Student::add_remove_course(sqlite3* db, int ID) {
+string Student::add_remove_course(sqlite3* db, int ID) { //made by Felix (gave up on conflict)
     char* messageError;
 
     string CRN; //Course CRN Number

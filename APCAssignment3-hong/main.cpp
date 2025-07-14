@@ -143,7 +143,7 @@ void instructor_ui(sqlite3* db, int myID)
 	}
 }
 
-void admin_ui(sqlite3* db, int myID)
+void admin_ui(sqlite3* db, int myID) //made by Hong inspired by Omar
 {
 
 	char* messageError;
@@ -293,7 +293,7 @@ void admin_ui(sqlite3* db, int myID)
 
 }
 
-void student_ui(sqlite3* db, int myID)
+void student_ui(sqlite3* db, int myID) //made by Hong in prep for Felix
 {
 
 	char* messageError;
