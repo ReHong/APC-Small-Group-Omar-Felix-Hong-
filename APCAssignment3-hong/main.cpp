@@ -334,56 +334,35 @@ void student_ui(sqlite3* db, int myID)
 			<< "1. Search Course (Default)" << endl
 			<< "2. Search Course (by Parameters)" << endl
 			<< "3. Add/Remove Course" << endl
-			<< "4. Print Course" << endl
-			<< "5. Print Schedule" << endl
+			<< "4. Print Schedule" << endl
+			<< "0. Exit" << endl
 			<< "Choice: " << endl;
-
 		cin >> choice;
 
 		switch (choice)
 		{
 		case 1:
 			//prints all courses
-			/*
-			sqlcommands = adctrl.print_course();
+			sqlcommands = stuctrl.print_course();
 			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
-			*/
 			break;
 
 		case 2:
 			//Does Search Default by CRN
-			
+			sqlcommands = stuctrl.search_courseD();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
 			break;
 
 		case 3:
-			//ADD Course
-			
+			//ADD/remove Course
+			sqlcommands = stuctrl.add_remove_course(db, stuctrl.show_ID());
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
 			break;
 
-		case 4://issue
-			//Remove Course 
-			
-			break;
-
-		case 5:
-			//add user
-			
-
-			break;
-
-		case 6://issue
-			//remove user
-			
-			break;
-
-		case 7:
-			//Change Instructor to Course
-			
-			break;
-
-		case 8:
-			//Add/Remove student from Course
-			
+		case 4:
+			//Print Schedule 
+			sqlcommands = stuctrl.print_schedule(stuctrl.show_ID());
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
 			break;
 		case 0:
 			//exit
