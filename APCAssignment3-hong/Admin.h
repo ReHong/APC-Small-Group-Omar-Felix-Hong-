@@ -5,7 +5,7 @@
 #include "sqlite3.h"
 
 class Admin :
-    public User
+	public User
 {
 	string title;
 	string office;
@@ -13,21 +13,17 @@ class Admin :
 public:
 	Admin(string first, string last, int ID, string e, string t, string o);
 	string add_course();
-	string remove_course();
+	int remove_course(sqlite3* db);
 
-	string add_user(int User);
-	string remove_user(int User);
+	string add_user(sqlite3* db);
+	string remove_user();
 
-
-
-	string search_course();
-	string print_course();
-	string search_class();
-	string print_class(); 
-
+	string print_class();
+	string link_instructor();
+	string link_student();
 	//Destructor
 
-	~Admin(); 
+	~Admin();
 
 };
 

@@ -16,6 +16,7 @@ using std::ifstream;  //read data from a file
 
 using namespace std;
 
+
 /*************************************************************************************************
  The callback() function is invoked for each result row coming out of the evaluated SQL statement
  1st argument - the 4th argument provided by sqlite3_exec() and is typically not used
@@ -37,6 +38,362 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 	return 0;
 }
 
+//helper function made by Omar
+bool authenticate(sqlite3* db,
+	const std::string& user,
+	const std::string& pass,
+	std::string& roleOut,
+	int& idOut)
+{
+	const char* sql =
+		"SELECT ROLE, USER_ID "
+		"FROM LOGIN "
+		"WHERE USERNAME = ?1 AND PASSWORD = ?2;";
+
+	sqlite3_stmt* stmt = nullptr;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK)
+		return false;
+
+	sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_STATIC);
+	sqlite3_bind_text(stmt, 2, pass.c_str(), -1, SQLITE_STATIC);
+
+	bool ok = (sqlite3_step(stmt) == SQLITE_ROW);
+	if (ok) {
+		roleOut = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		idOut = sqlite3_column_int(stmt, 1);
+	}
+	sqlite3_finalize(stmt);
+	return ok;
+}
+
+// Instructor console menu would not work correctly in a cpp and header file - Omar 
+static int print_cb(void*, int n, char** v, char**)
+{
+	for (int i = 0; i < n; ++i)
+		std::cout << (v[i] ? v[i] : "NULL") << '\t';
+	std::cout << '\n';
+	return 0;
+}
+
+void instructor_ui(sqlite3* db, int myID)
+{
+	bool done = false;
+	char* err = nullptr;
+	int  rc;
+	std::string sql;
+
+	while (!done)
+	{
+		std::cout << "\nInstructor Menu\n"
+			<< "1  View my schedule\n"
+			<< "2  Print a course roster\n"
+			<< "3  Search a student in my classes\n"
+			<< "0  Log out\n"
+			<< "Choice: ";
+		int ch;  std::cin >> ch;
+
+		switch (ch)
+		{
+		case 1:   // schedule
+			sql = "SELECT CRN, TITLE, TIMES, DofW, "
+				"SEMESTER||' '||YEAR "
+				"FROM  COURSE "
+				"WHERE INSTRUCTOR_ID = " + std::to_string(myID) + ';';
+			std::cout << "\nCRN\tTitle\tTimes\tDays\tTerm\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+
+		case 2: { // roster
+			int crn;  std::cout << "CRN: ";  std::cin >> crn;
+			sql = "SELECT s.Student_ID, st.NAME, st.SURNAME "
+				"FROM   SCHEDULE s "
+				"JOIN   STUDENT  st ON st.ID = s.Student_ID "
+				"WHERE  s.Course_ID = " + std::to_string(crn) +
+				" AND   EXISTS(SELECT 1 FROM COURSE c "
+				"             WHERE c.CRN = s.Course_ID "
+				"               AND c.INSTRUCTOR_ID = " + std::to_string(myID) + ");";
+			std::cout << "\nID\tFirstName\tLastName\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+		}
+
+		case 3: { // student search
+			int sid;  std::cout << "Student ID: ";  std::cin >> sid;
+			sql = "SELECT c.CRN, c.TITLE "
+				"FROM   COURSE  c "
+				"JOIN   SCHEDULE s ON s.Course_ID = c.CRN "
+				"WHERE  c.INSTRUCTOR_ID = " + std::to_string(myID) +
+				" AND   s.Student_ID   = " + std::to_string(sid) + ';';
+			std::cout << "\nCourses that student " << sid << " takes with you:\n"
+				<< "CRN\tTitle\n";
+			rc = sqlite3_exec(db, sql.c_str(), print_cb, nullptr, &err);
+			if (rc) { std::cout << err << '\n'; sqlite3_free(err); }
+			break;
+		}
+
+		case 0:
+			done = true;                     // leave menu ? log out
+			break;
+
+		default:
+			std::cout << "Invalid choice.\n";
+		}
+	}
+}
+
+void admin_ui(sqlite3* db, int myID) //made by Hong inspired by Omar
+{
+
+	char* messageError;
+
+	int check;
+
+	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
+
+	int choice; //user input choice
+
+	bool loop = true;
+
+	int exit;
+
+	//open the database
+
+	//Admin(string first, string last, int ID, string e, string t, string o) : User(first, last, ID, e)
+	Admin adctrl("Admin", "Astrator", myID, "astratora", "trap", "reddit"); //control admin
+
+	/*
+	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+		<< "1. Search Course (Default)" << endl
+		<< "2. Search Course (by Parameters)" << endl
+		<< "3. Add Course" << endl
+		<< "4. Remove Course" << endl
+		<< "5. Add User" << endl
+		<< "6. Remove User" << endl
+		<< "7. Change Instructor to Course" << endl
+		<< "8. Add/Remove student from Course" << endl << endl
+		<< "Choice: " << endl;
+
+	cin >> sqlcommands;
+	*/
+
+	while (loop)
+	{
+		cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+			<< "1. Search Course (Default)" << endl
+			<< "2. Search Course (by Parameters)" << endl
+			<< "3. Add Course" << endl
+			<< "4. Remove Course" << endl
+			<< "5. Add User" << endl
+			<< "6. Remove User" << endl
+			<< "7. Change Instructor to Course" << endl
+			<< "8. Add/Remove student from Course" << endl
+			<< "0. Exit" << endl << endl
+			<< "Choice: " << endl;
+
+		cin >> choice;
+
+		switch (choice)
+		{
+		case 1:
+			//prints all courses
+			sqlcommands = adctrl.print_course();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
+			break;
+
+		case 2:
+			//Does Search Default by CRN
+			sqlcommands = adctrl.search_courseD();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 3:
+			//ADD Course
+			sqlcommands = adctrl.add_course();
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** Course Added **\n";
+			}
+			break;
+
+		case 4://issue
+			//Remove Course 
+			adctrl.remove_course(db);
+			break;
+
+		case 5:
+			//add user
+			sqlcommands = adctrl.add_user(db);
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** User Added **\n";
+			}
+
+			break;
+
+		case 6://issue
+			//remove user
+			sqlcommands = adctrl.remove_user();
+			exit = sqlite3_exec(db, sqlcommands.c_str(), nullptr, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** User Removed **\n";
+			}
+			break;
+
+		case 7:
+			//Change Instructor to Course
+			sqlcommands = adctrl.link_instructor();
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** Instructor Connected **\n";
+			}
+			break;
+
+		case 8:
+			//Add/Remove student from Course
+			sqlcommands = adctrl.link_student();
+			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			if (exit != SQLITE_OK) {
+				cerr << "Error creating LOGIN table: " << messageError << '\n';
+				sqlite3_free(messageError);
+			}
+			else {
+				cout << "** Altered Schedule **\n";
+			}
+			break;
+		case 0:
+			//exit
+			loop = false;
+			break;
+
+		default:
+			cout << "** Invalid Option **" << endl;
+			break;
+		}
+	}
+
+	sqlcommands.clear();
+
+}
+
+void student_ui(sqlite3* db, int myID) //made by Hong in prep for Felix
+{
+
+	char* messageError;
+
+	int check;
+
+	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
+
+	int choice; //user input choice
+
+	bool loop = true;
+
+	int exit;
+
+	//open the database
+
+	//Student(string first, string last, int ID, string e, int g, string m) : User(first, last, ID, e)
+	Student stuctrl("Student", "Student", myID, "student@wit.edu", 4, "reddit"); //control admin
+
+	/*
+	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+		<< "1. Search Course (Default)" << endl
+		<< "2. Search Course (by Parameters)" << endl
+		<< "3. Add Course" << endl
+		<< "4. Remove Course" << endl
+		<< "5. Add User" << endl
+		<< "6. Remove User" << endl
+		<< "7. Change Instructor to Course" << endl
+		<< "8. Add/Remove student from Course" << endl << endl
+		<< "Choice: " << endl;
+
+	cin >> sqlcommands;
+	*/
+
+	while (loop)
+	{
+		cout << "** WELCOME BACK SELECT YOUR CONTROLS ** " << endl << endl
+			<< "1. Search Course (Default)" << endl
+			<< "2. Search Course (by Parameters)" << endl
+			<< "3. Add/Remove Course" << endl
+			<< "4. Print Schedule" << endl
+			<< "0. Exit" << endl
+			<< "Choice: " << endl;
+		cin >> choice;
+
+		switch (choice)
+		{
+		case 1:
+			//prints all courses
+			sqlcommands = stuctrl.print_course();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
+			break;
+
+		case 2:
+			//Does Search Default by CRN
+			sqlcommands = stuctrl.search_courseD();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 3:
+			//ADD/remove Course
+			sqlcommands = stuctrl.add_remove_course(db, stuctrl.show_ID());
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+
+		case 4:
+			//Print Schedule 
+			sqlcommands = stuctrl.print_schedule(stuctrl.show_ID());
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
+			break;
+		case 0:
+			//exit
+			loop = false;
+			break;
+
+		default:
+			cout << "** Invalid Option **" << endl;
+			break;
+		}
+	}
+
+	sqlcommands.clear();
+
+}
+
+//Omar's function for using database
+void execute(sqlite3* DB, const char* sql) {
+	char* err = nullptr;
+	if (sqlite3_exec(DB, sql, nullptr, nullptr, &err) != SQLITE_OK) {
+		std::cerr << "SQL error: " << err << '\n';
+		sqlite3_free(err);
+	}
+}
+
+// - Omar Code that will be transferred later 
+void instructor_ui(sqlite3* db, int instructorID); // Instead of making a whole other file just for this
+
+// I also did the same with admin -Hong
+void admin_ui(sqlite3* db, int instructorID);
+
 
 int main(int argc, char** argv)
 {
@@ -54,7 +411,9 @@ int main(int argc, char** argv)
 
 	int exit = 0;
 
-	exit = sqlite3_open("assignment3.db", &DB);			//open the database
+	exit = sqlite3_open("assignment3.db", &DB);		//open the database
+	
+	sqlite3_exec(DB, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
 
 	char* messageError;
 
@@ -107,15 +466,20 @@ int main(int argc, char** argv)
 
 	sqlite3_exec(DB, "DROP TABLE IF EXISTS COURSE;", nullptr, nullptr, &messageError);
 
-	string tableCourse = "CREATE TABLE COURSE(" //database Course table
+	string tableCourse = "CREATE TABLE IF NOT EXISTS COURSE("
 		"CRN INTEGER PRIMARY KEY, "
 		"TITLE TEXT NOT NULL, "
 		"DEPARTMENT TEXT NOT NULL, "
-		"TIMES TEXT NOT NULL,"
-		"DofW TEXT NOT NULL,"
-		"SEMESTER TEXT NOT NULL,"
-		"YEAR INTEGER NOT NULL,"
-		"CREDITS INTEGER NOT NULL); ";
+		"TIMES TEXT NOT NULL, "
+		"TIMESTART INTEGER NOT NULL, "
+		"TIMEEND INTEGER NOT NULL, "
+		"DofW TEXT NOT NULL, "
+		"SEMESTER TEXT NOT NULL, "
+		"YEAR INTEGER NOT NULL, "
+		"CREDITS INTEGER NOT NULL, "
+		"INSTRUCTOR_ID INTEGER, "
+		"FOREIGN KEY (INSTRUCTOR_ID) REFERENCES INSTRUCTOR(ID) ON DELETE CASCADE"
+		");";
 
 	exit = sqlite3_exec(DB, tableCourse.c_str(), NULL, 0, &messageError);
 
@@ -125,142 +489,200 @@ int main(int argc, char** argv)
 		sqlite3_free(messageError);
 	}
 	else
+	{
 		cout << "Table created Successfully" << std::endl;
+	}
 
-	//Admin, Instructor, Student addition (as backup)
-	//Create Course List (yes I stopped caring at this point)
+	string tableSchedule = "CREATE TABLE IF NOT EXISTS SCHEDULE("
+		"Course_ID INTEGER, "
+		"Student_ID INTEGER, "
+		"FOREIGN KEY (Course_ID) REFERENCES COURSE(CRN) ON DELETE CASCADE,"
+		"FOREIGN KEY (Student_ID) REFERENCES STUDENT(ID) ON DELETE CASCADE,"
+		"PRIMARY KEY(Course_ID, Student_ID)"
+		");";
 
-	/*
-	string sql("INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
-		"INSERT INTO ADMIN VALUES(30002, 'Vera', 'Rubin', 'Registar', 'Wentworth 101', 'rubinv');"
-
-		"INSERT INTO INSTRUCTOR VALUES(20001, 'Joseph', 'Fourier', 'Full Prof.', 1820, 'BSEE', 'fourierj');"
-		"INSERT INTO INSTRUCTOR VALUES(20002, 'Nelson', 'Patrick', 'Full Prof.', 1994, 'HUSS', 'patrickn');"
-		"INSERT INTO INSTRUCTOR VALUES(20003, 'Galileo', 'Galilei', 'Full Prof.', 1600, 'BSAS', 'galileig');"
-		"INSERT INTO INSTRUCTOR VALUES(20004, 'Alan', 'Turing', 'Associate Prof.', 1940, 'BSCO', 'turinga');"
-		"INSERT INTO INSTRUCTOR VALUES(20005, 'Katie', 'Bouman', 'Associate Prof.', 2019, 'BCOS', 'boumank');"
-		"INSERT INTO INSTRUCTOR VALUES(20006, 'Daniel', 'Bernouli', 'Associate Prof.', 1760, 'BSME', 'bernoulid');"
-
-		"INSERT INTO STUDENT VALUES(10001, 'Isaac', 'Newton', 1668, 'BSAS', 'newtoni');"
-		"INSERT INTO STUDENT VALUES(10002, 'Marie', 'Curie', 1903, 'BSAS', 'curiem');"
-		"INSERT INTO STUDENT VALUES(10003, 'Nikola', 'Tesla', 1878, 'BSEE', 'teslan');"
-		"INSERT INTO STUDENT VALUES(10004, 'Thomas', 'Edison', 1879, 'BSEE', 'edisont');"
-		"INSERT INTO STUDENT VALUES(10005, 'John', 'von Neumann', 1923, 'BSCO', 'vonneumanj');"
-		"INSERT INTO STUDENT VALUES(10006, 'Grace', 'Hopper', 1928, 'BCOS', 'hopperg');"
-		"INSERT INTO STUDENT VALUES(10007, 'Mae', 'Jemison', 1981, 'BSCH', 'jamisonm');"
-		"INSERT INTO STUDENT VALUES(10008, 'Mark', 'Dean', 1979, 'BSCO', 'deanm');"
-		"INSERT INTO STUDENT VALUES(10009, 'Michael', 'Faraday', 1812, 'BSAS', 'faradaym');"
-		"INSERT INTO STUDENT VALUES(10010, 'Ada', 'Lovelace', 1832, 'BCOS', 'lovelacea');"
-
-		//main issue is that this is not being used
-		"INSERT INTO COURSE VALUES(50001, 'Engrish', 'BSEE', '8:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50002, 'Matting', 'HUSS', '10:00 AM', 'M W F', 'Winter', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50003, 'Blow Ups', 'BSAS', '10:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50004, 'Torture Rooms', 'BSCO', '8:00 AM', 'M W F', 'Winter', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50005, 'Femboyant Architypes', 'BCOS', '8:00 AM', 'M W F', 'Fall', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50006, 'Eric Femboy Crisis Hotline', 'BSME', '7:00 PM', 'M W F', 'Winter', 2022, 2);"
-	);
-	*/
-
-	string sql(
-		//main issue is that this is not being used
-		"INSERT INTO COURSE VALUES(50001, 'Engrish', 'BSEE', '8:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50002, 'Matting', 'HUSS', '10:00 AM', 'M W F', 'Winter', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50003, 'Blow Ups', 'BSAS', '10:00 AM', 'M W F', 'Fall', 2022, 4);"
-		"INSERT INTO COURSE VALUES(50004, 'Torture Rooms', 'BSCO', '8:00 AM', 'M W F', 'Winter', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50005, 'Femboyant Architypes', 'BCOS', '8:00 AM', 'M W F', 'Fall', 2022, 3);"
-		"INSERT INTO COURSE VALUES(50006, 'Eric Femboy Crisis Hotline', 'BSME', '7:00 PM', 'M W F', 'Winter', 2022, 2);"
-	);
-
-	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	exit = sqlite3_exec(DB, tableSchedule.c_str(), NULL, 0, &messageError);
 
 	if (exit != SQLITE_OK)
 	{
-		std::cerr << "Error Data Fail" << std::endl;
+		std::cerr << "Error Create Table" << std::endl;
 		sqlite3_free(messageError);
 	}
 	else
 	{
-		cout << "Data Successfully Inserted" << std::endl;
+		cout << "Table created Successfully" << std::endl;
 	}
 
-	/***********************************************
-	 print all data in the table with SELECT * FROM
-	 create string with query then execute
-	 **********************************************/
-	string query = "SELECT * FROM PROGRAMMER;"; //used later
+	//Omar's portion of the code with the logins (cleaned up in order by Hong)
+	string tableLogin = R"(
+    CREATE TABLE IF NOT EXISTS LOGIN (
+        USERNAME TEXT PRIMARY KEY,
+        PASSWORD TEXT NOT NULL,
+        ROLE     TEXT NOT NULL CHECK (ROLE IN ('ADMIN','INSTRUCTOR','STUDENT')),
+        USER_ID  INTEGER NOT NULL
+		);
+	)";
 
-	cout << endl << query << endl;		//print the string to screen
-
-	// you need the callback function this time since there could be multiple rows in the table
-	sqlite3_exec(DB, query.c_str(), callback, NULL, NULL);
+	exit = sqlite3_exec(DB, tableLogin.c_str(), nullptr, nullptr, &messageError);
 
 
-	/*
+	if (exit != SQLITE_OK) {
+		cerr << "Error creating LOGIN table: " << messageError << '\n';
+		sqlite3_free(messageError);
+	}
+	else {
+		cout << "LOGIN table created successfully\n";
+	}
 
-	Big note : considering we have the database involved heavily for program
-	i.e. storage, functionality, classes
-	We should assume that the login portion or creating the User b4 the actual program
-	involves pulling straight from the database from either Admin, Instructor, or Student
-	then between the case statements, a new user will be created/pulled based on
-	that class object through a class pointer storage. Otherwise loop back to login because incorrect
-	information
+	const char* seedLogin = //default loggins
+		"INSERT OR IGNORE INTO LOGIN VALUES "
+		"('hamiltonm','pass123','ADMIN',30001),"
+		"('rubinv','MysoultoWIT2022','ADMIN',30002),"
 
-	Admin(string first, string last, int ID, string e, string t, string o);
+		"('fourierj','MysoultoWIT2022','INSTRUCTOR',20001),"
+		"('patrickn','MysoultoWIT2022','INSTRUCTOR',20002),"
+		"('galileig','MysoultoWIT2022','INSTRUCTOR',20003),"
+		"('turinga','MysoultoWIT2022','INSTRUCTOR',20004),"
+		"('boumank','MysoultoWIT2022','INSTRUCTOR',20005),"
+		"('bernoulid','MysoultoWIT2022','INSTRUCTOR',20006),"
+		"('stalinj','MysoultoWIT2022','INSTRUCTOR',20007),"
+		"('zengelk','MysoultoWIT2022','INSTRUCTOR',20008),"
+		"('carlose','MysoultoWIT2022','INSTRUCTOR',20009),"
+		"('fortnera','MysoultoWIT2022','INSTRUCTOR',20010),"
+		"('pernellik','MysoultoWIT2022','INSTRUCTOR',20011),"
+		"('astrayd','MysoultoWIT2022','INSTRUCTOR',20012),"
+		"('hopnerj','MysoultoWIT2022','INSTRUCTOR',20013),"
+		"('gibsn','MysoultoWIT2022','INSTRUCTOR',20014),"
+		"('notnere','MysoultoWIT2022','INSTRUCTOR',20015),"
 
-	*/
+		"('newtoni','MysoultoWIT2022','STUDENT',10001),"
+		"('curiem','MysoultoWIT2022','STUDENT',10002),"
+		"('teslan','MysoultoWIT2022','STUDENT',10003),"
+		"('edisont','MysoultoWIT2022','STUDENT',10004),"
+		"('vonneumanj','MysoultoWIT2022','STUDENT',10005),"
+		"('hopperg','MysoultoWIT2022','STUDENT',10006),"
+		"('jamisonm','MysoultoWIT2022','STUDENT',10007),"
+		"('deanm','MysoultoWIT2022','STUDENT',10008),"
+		"('faradaym','MysoultoWIT2022','STUDENT',10009),"
+		"('lovelacea','MysoultoWIT2022','STUDENT',10010),"
+		"('smitha','MysoultoWIT2022','STUDENT',10011),"
+		"('smithd','MysoultoWIT2022','STUDENT',10012),"
+		"('hopperj','MysoultoWIT2022','STUDENT',10013),"
+		"('jacksons','MysoultoWIT2022','STUDENT',10014),"
+		"('lec','MysoultoWIT2022','STUDENT',10015),"
+		"('kimbleyj','MysoultoWIT2022','STUDENT',10016),"
+		"('floresw','MysoultoWIT2022','STUDENT',10017),"
+		"('milordc','MysoultoWIT2022','STUDENT',10018),"
+		"('gonzalez','MysoultoWIT2022','STUDENT',10019),"
+		"('luuh','MysoultoWIT2022','STUDENT',10020);"
+		;
 
-	//test case for using the methods for sqlite
-	Admin test("Admin", "Astrator", 1, "astratora", "trap", "reddit");
-
-	//add student 1
-	string userInput(test.add_user(3));
-
-	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL);
-
-	//add student 2
-	string userInput2(test.add_user(3));
-
-	exit = sqlite3_exec(DB, userInput2.c_str(), callback, NULL, NULL);
-
-	//remove Instructor + Updating Admin
-	//suppossed remove
-	//string userInput2(test.remove_user(2));
-
+	//for all logins made by Hong
+	//failed because I have no idea how
+	string email;
+	string password = "MysoultoWIT2022";
+	string role;
+	int IDtag;
 	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
-	int id;
-	const char* sqlD = "DELETE FROM INSTRUCTOR WHERE ID = ?;"; //a way to delete and remove
-	cout << "Delete Instructor 1-6: ";
-	cin >> id;
-	id = id + 20000;
 
-	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
-	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
-	sqlite3_step(stmt); //run it
-	sqlite3_finalize(stmt); //save 
-	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
+	const char* stu = "SELECT EMAIL, ID FROM STUDENT WHERE ID = ?;";
+	const char* ins = "SELECT EMAIL, ID FROM INSTRUCTOR WHERE ID = ?;";
+	const char* adm = "SELECT EMAIL, ID FROM ADMIN WHERE ID = ?;";
 
-	//Update
-	const char* sqlU = "UPDATE ADMIN SET TITLE = ? WHERE ID = ?;"; //a way to update one line
 
-	string nameChange;
 
-	getline(cin, nameChange);
-	cout << "Change Admin Title: ";
-	getline(cin, nameChange);
 
-	cout << "Admin 1 or 2: ";
-	cin >> id;
-	id = id + 30000;
+	exit = sqlite3_exec(DB, seedLogin, nullptr, nullptr, &messageError);
+	if (exit != SQLITE_OK) {
+		cerr << "Seeding LOGIN failed: " << messageError << '\n';
+		sqlite3_free(messageError);
+	}
+	else {
+		cout << "Seed table created successfully\n";
+	}
 
-	sqlite3_prepare_v2(DB, sqlU, -1, &stmt, NULL); //preparing the update
-	sqlite3_bind_text(stmt, 1, nameChange.c_str(), -1, SQLITE_STATIC); //change name 
-	sqlite3_bind_int(stmt, 2, id); //change name of that row that matches with the ID number
-	sqlite3_step(stmt); //run it
-	sqlite3_finalize(stmt); //save 
+	string queryClasses = R"(
+		SELECT c.CRN, c.TITLE
+		FROM COURSE c
+		JOIN SCHEDULE s ON c.CRN = s.Course_ID
+		WHERE s.Student_ID = 10001;
+		)";
 
+	sqlite3_exec(DB, queryClasses.c_str(), callback, NULL, &messageError);
+
+	exit = sqlite3_exec(DB, queryClasses.c_str(), callback, nullptr, &messageError);
+
+	if (exit != SQLITE_OK)
+	{
+		std::cerr << "Error running query: " << messageError << endl;
+		sqlite3_free(messageError);
+	}
+	else
+	{
+		cout << "Query Sucess Implementation" << std::endl;
+	}
+
+	//tables are all set from above
+	/**********************************************************************************************************************************/
+
+	const char* sqlC = "DELETE FROM COURSE WHERE ID = ?;";
+
+	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
+
+	int choice; //user input choice
+
+	bool loop = true;
+
+	Admin adctrl("Admin", "Astrator", 1, "astratora", "trap", "reddit"); //control admin
+
+	Instructor teactrl("Torn", "Tori", 2, "torii", "sensei", 2001, "TEAC"); //control instructor
+
+	Student studctrl("Stu", "Dent", 3, "dents", 2022, "NONE"); //control student
+
+
+	// Login/logout loop --> made by Omar
+	while (true) {
+		string username;
+		cout << "Username (Q to quit): ";
+		cin >> username;
+		if (username == "Q") break;
+
+		string password;
+		cout << "Password: ";
+		cin >> password;
+
+		sqlite3_stmt* stmt;
+		sqlite3_prepare_v2(DB,
+			"SELECT ROLE, USER_ID FROM LOGIN WHERE USERNAME=? AND PASSWORD=?;",
+			-1, &stmt, nullptr);
+		sqlite3_bind_text(stmt, 1, username.c_str(), -1, nullptr);
+		sqlite3_bind_text(stmt, 2, password.c_str(), -1, nullptr);
+
+		if (sqlite3_step(stmt) == SQLITE_ROW) {
+			std::string role = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+			int userID = sqlite3_column_int(stmt, 1);
+			sqlite3_finalize(stmt);
+
+			if (role == "INSTRUCTOR") {
+				instructor_ui(DB, userID);
+			}
+			else if (role == "ADMIN") //Hong's Addition
+			{
+				admin_ui(DB, userID);
+			}
+			//student UI here
+			else if (role == "STUDENT")
+			{
+				student_ui(DB, userID);
+			}
+			
+		}
+		else {
+			std::cout << "Invalid credentials.\n";
+			sqlite3_finalize(stmt);
+		}
+	}
 	sqlite3_close(DB);
-
 	return 0;
 }
 
