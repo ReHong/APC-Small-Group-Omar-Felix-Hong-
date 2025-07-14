@@ -77,15 +77,25 @@ string Admin::add_course() //work in progress
 		cout << endl << "Enter End Time:";
 		cin >> tei;
 
-		tl1 = to_string(tii);
-		tl2 = to_string(tei);
 
 		if (tei > 12)
 		{
+			if (tii > 12)
+			{
+				tl1 = to_string(tii-12);
+				tl2 = to_string(tei-12);
+			}
+			else
+			{
+				tl1 = to_string(tii);
+				tl2 = to_string(tei-12);
+			}
 			day = "PM";
 		}
 		else
 		{
+			tl1 = to_string(tii);
+			tl2 = to_string(tei);
 			day = "AM";
 		}
 
