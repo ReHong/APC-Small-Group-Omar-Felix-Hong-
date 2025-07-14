@@ -15,7 +15,7 @@ public:
 	string add_course();
 	int remove_course(sqlite3* db);
 
-	string add_user();
+	string add_user(sqlite3* db);
 	string remove_user();
 
 	string print_class();

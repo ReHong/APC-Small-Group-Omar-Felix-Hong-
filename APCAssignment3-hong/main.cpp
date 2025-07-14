@@ -228,7 +228,7 @@ void admin_ui(sqlite3* db, int myID)
 
 		case 5:
 			//add user
-			sqlcommands = adctrl.add_user();
+			sqlcommands = adctrl.add_user(db);
 			exit = sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError);
 			if (exit != SQLITE_OK) {
 				cerr << "Error creating LOGIN table: " << messageError << '\n';

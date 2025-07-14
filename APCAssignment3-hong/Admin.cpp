@@ -194,8 +194,9 @@ int Admin::remove_course(sqlite3* db)
 	return choice;
 }
 
-string Admin::add_user() {
-
+string Admin::add_user(sqlite3* db)
+{
+	sqlite3_stmt* stmt;
 	string firstN;
 	string lastN;
 	string ID;                                       //may revert back to int in the future
@@ -205,6 +206,10 @@ string Admin::add_user() {
 	string o; //office
 	string year; // "gradyear" or "Year of Hire"       //may revert back to int in the future
 	
+	string hold; //to add user
+	char* messageError;
+
+
 	int user;
 	bool reg = true;
 	while (reg)
@@ -257,19 +262,22 @@ string Admin::add_user() {
 	switch (user)
 	{
 	case 1: //admin
-		return "INSERT INTO ADMIN VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', '" + t + "', '" + o + "', '" + e + "');";
+		hold = "INSERT INTO ADMIN VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', '" + t + "', '" + o + "', '" + e + "');";
+		sqlite3_exec(db, hold.c_str(), callback, nullptr, &messageError);
 		break;
 
 	case 2://instructor
-		return "INSERT INTO INSTRUCTOR VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', '" + t + "', " + year + ", '" + m + "', '" + e + "');";
+		hold = "INSERT INTO INSTRUCTOR VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', '" + t + "', " + year + ", '" + m + "', '" + e + "');";
+		sqlite3_exec(db, hold.c_str(), callback, nullptr, &messageError);
 		break;
 
 	case 3://student
-		return "INSERT INTO STUDENT VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', " + year + ", '" + m + "', '" + e + "');";
+		hold = "INSERT INTO STUDENT VALUES(" + ID + ", '" + firstN + "', '" + lastN + "', " + year + ", '" + m + "', '" + e + "');";
+		sqlite3_exec(db, hold.c_str(), callback, nullptr, &messageError);
 		break;
 	}
 
-	//string loginInsert = "INSERT INTO LOGIN (USERNAME, PASSWORD, ROLE, USER_ID) VALUES ('" + username + "', 'MysoultoWIT2022', 'INSTRUCTOR', " + ID + ");";
+	return "INSERT INTO LOGIN (USERNAME, PASSWORD, ROLE, USER_ID) VALUES ('" + e + "', 'MysoultoWIT2022', 'INSTRUCTOR', " + ID + ");"; //add to the login table
 
 }
 
