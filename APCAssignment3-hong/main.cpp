@@ -293,6 +293,113 @@ void admin_ui(sqlite3* db, int myID)
 
 }
 
+void student_ui(sqlite3* db, int myID)
+{
+
+	char* messageError;
+
+	int check;
+
+	string sqlcommands;//used frequently for calling commands to cause changes especially calling methods to sql
+
+	int choice; //user input choice
+
+	bool loop = true;
+
+	int exit;
+
+	//open the database
+
+	//Student(string first, string last, int ID, string e, int g, string m) : User(first, last, ID, e)
+	Student stuctrl("Student", "Student", myID, "student@wit.edu", 4, "reddit"); //control admin
+
+	/*
+	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
+		<< "1. Search Course (Default)" << endl
+		<< "2. Search Course (by Parameters)" << endl
+		<< "3. Add Course" << endl
+		<< "4. Remove Course" << endl
+		<< "5. Add User" << endl
+		<< "6. Remove User" << endl
+		<< "7. Change Instructor to Course" << endl
+		<< "8. Add/Remove student from Course" << endl << endl
+		<< "Choice: " << endl;
+
+	cin >> sqlcommands;
+	*/
+
+	while (loop)
+	{
+		cout << "** WELCOME BACK SELECT YOUR CONTROLS ** " << endl << endl
+			<< "1. Search Course (Default)" << endl
+			<< "2. Search Course (by Parameters)" << endl
+			<< "3. Add/Remove Course" << endl
+			<< "4. Print Course" << endl
+			<< "5. Print Schedule" << endl
+			<< "Choice: " << endl;
+
+		cin >> choice;
+
+		switch (choice)
+		{
+		case 1:
+			//prints all courses
+			/*
+			sqlcommands = adctrl.print_course();
+			sqlite3_exec(db, sqlcommands.c_str(), callback, nullptr, &messageError); //prints all courses
+			*/
+			break;
+
+		case 2:
+			//Does Search Default by CRN
+			
+			break;
+
+		case 3:
+			//ADD Course
+			
+			break;
+
+		case 4://issue
+			//Remove Course 
+			
+			break;
+
+		case 5:
+			//add user
+			
+
+			break;
+
+		case 6://issue
+			//remove user
+			
+			break;
+
+		case 7:
+			//Change Instructor to Course
+			
+			break;
+
+		case 8:
+			//Add/Remove student from Course
+			
+			break;
+		case 0:
+			//exit
+			loop = false;
+			break;
+
+		default:
+			cout << "** Invalid Option **" << endl;
+			break;
+		}
+	}
+
+	sqlcommands.clear();
+
+}
+
 //Omar's function for using database
 void execute(sqlite3* DB, const char* sql) {
 	char* err = nullptr;
@@ -584,12 +691,12 @@ int main(int argc, char** argv)
 			{
 				admin_ui(DB, userID);
 			}
-			/* student UI here
+			//student UI here
 			else if (role == "STUDENT")
 			{
-
+				student_ui(DB, userID);
 			}
-			*/
+			
 		}
 		else {
 			std::cout << "Invalid credentials.\n";
