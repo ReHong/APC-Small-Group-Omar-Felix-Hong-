@@ -116,7 +116,7 @@ string Student::add_remove_course(sqlite3* db, int ID) { //made by Felix (gave u
     }
 
     case 2: { //This will remove course from the schedule
-        string query = "DELETE FROM SCHEDULE (Course_ID, Student_ID) VALUES (" + Course_ID + ", " + to_string(ID) + ");";
+        string query = "DELETE FROM SCHEDULE WHERE Course_ID = " + Course_ID + " AND Student_ID = " + to_string(ID) + ";";
         return query;
         break;
 
