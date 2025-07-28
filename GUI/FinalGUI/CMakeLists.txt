@@ -26,6 +26,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(FinalGUI
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        admin.h admin.cpp admin.ui
+        addcourse.h addcourse.cpp addcourse.ui
+        removecourse.h removecourse.cpp removecourse.ui
+        adduser.h adduser.cpp adduser.ui
+        removeuser.h removeuser.cpp removeuser.ui
+        swapinstr.h swapinstr.cpp swapinstr.ui
+        studentcourse.h studentcourse.cpp studentcourse.ui
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FinalGUI APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
