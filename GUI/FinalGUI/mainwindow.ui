@@ -27,7 +27,7 @@
      <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="Username">
     <property name="geometry">
      <rect>
       <x>170</x>
@@ -40,7 +40,7 @@
      <string>Username: </string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="Password">
     <property name="geometry">
      <rect>
       <x>170</x>
@@ -53,7 +53,7 @@
      <string>Password:</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="TextUser">
     <property name="geometry">
      <rect>
       <x>230</x>
@@ -63,7 +63,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_2">
+   <widget class="QLineEdit" name="TextPass">
     <property name="geometry">
      <rect>
       <x>230</x>
@@ -73,7 +73,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="label_3">
+   <widget class="QLabel" name="ErrorMessage">
     <property name="geometry">
      <rect>
       <x>180</x>
