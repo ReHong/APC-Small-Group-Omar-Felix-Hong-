@@ -10,6 +10,9 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Instructor.cpp \
+    Student.cpp \
+    User.cpp \
     addcourse.cpp \
     adduser.cpp \
     admin.cpp \
@@ -17,16 +20,21 @@ SOURCES += \
     mainwindow.cpp \
     removecourse.cpp \
     removeuser.cpp \
+    sqlite3.c \
     studentcourse.cpp \
     swapinstr.cpp
 
 HEADERS += \
+    Instructor.h \
+    Student.h \
+    User.h \
     addcourse.h \
     adduser.h \
     admin.h \
     mainwindow.h \
     removecourse.h \
     removeuser.h \
+    sqlite3.h \
     studentcourse.h \
     swapinstr.h
 
@@ -44,3 +52,6 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    assignment3.db

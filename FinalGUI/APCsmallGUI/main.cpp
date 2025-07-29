@@ -1,3 +1,5 @@
+#include <QApplication>
+#include "mainwindow.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -6,6 +8,7 @@
 #include "Instructor.h"
 #include "Admin.h"
 #include "sqlite3.h"
+
 
 using std::cin;
 using std::cout;
@@ -397,6 +400,10 @@ void admin_ui(sqlite3* db, int instructorID);
 
 int main(int argc, char** argv)
 {
+    QApplication app(argc, argv);
+    MainWindow window;   // or Admin, if you're launching Admin UI directly
+    window.show();
+    return app.exec();
 	const char* dir = "assignment3.db";
 
 	sqlite3* DB;
