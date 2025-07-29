@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AddCourse</class>
+ <widget class="QMainWindow" name="AddCourse">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLineEdit" name="TextD">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>190</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Title">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>150</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Title:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextDofW">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>310</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextT">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>150</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextTS">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>230</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="CRN">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>110</y>
+      <width>61</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>CRN: </string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextE">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>270</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="TimeS">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>230</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Time Start:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="DofW">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>310</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Days of the Week:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="TimeE">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>270</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Time End:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Department">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>190</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Department:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextCRN">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>110</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextC">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>190</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Year">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>150</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Year:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextY">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>150</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextInID">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>230</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Semester">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>110</y>
+      <width>61</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Semester: </string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="InstrID">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>230</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Instructor ID:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Credits">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>190</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Credtis:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="TextSem">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>110</y>
+      <width>113</width>
+      <height>24</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>300</y>
+      <width>80</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Done</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
