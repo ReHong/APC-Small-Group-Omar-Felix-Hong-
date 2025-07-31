@@ -10,12 +10,13 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Admin.cpp \
     Instructor.cpp \
     Student.cpp \
     User.cpp \
     addcourse.cpp \
     adduser.cpp \
-    admin.cpp \
+    adminwindow.cpp \
     main.cpp \
     mainwindow.cpp \
     removecourse.cpp \
@@ -25,12 +26,13 @@ SOURCES += \
     swapinstr.cpp
 
 HEADERS += \
+    Admin.h \
     Instructor.h \
     Student.h \
     User.h \
     addcourse.h \
     adduser.h \
-    admin.h \
+    adminwindow.h \
     mainwindow.h \
     removecourse.h \
     removeuser.h \
@@ -41,7 +43,7 @@ HEADERS += \
 FORMS += \
     addcourse.ui \
     adduser.ui \
-    admin.ui \
+    adminwindow.ui \
     mainwindow.ui \
     removecourse.ui \
     removeuser.ui \
