@@ -18,12 +18,8 @@ Student::Student(string first, string last, int ID, string e, int g, string m) :
 //Method
 string Student::add_remove_course(sqlite3* db, int ID) { //made by Felix (gave up on conflict)
     char* messageError;
-
-    string CRN; //Course CRN Number
-    //string ID; //Student's ID
-
+    string CRN; 
     int choice = 0;
-
     int Student_ID;
     string Course_ID;
     string DofW;
@@ -36,9 +32,7 @@ string Student::add_remove_course(sqlite3* db, int ID) { //made by Felix (gave u
         cin >> choice;
 
         if ((choice != 1) && (choice != 2)) {
-
             cout << "This is not a valid option. Press 1 or 2 (or 0 to exit)! " << endl;
-
         }
 
     }
@@ -110,6 +104,7 @@ string Student::add_remove_course(sqlite3* db, int ID) { //made by Felix (gave u
 	)";
     */
         
+
         return "INSERT INTO SCHEDULE(Course_ID, Student_ID) VALUES (" + Course_ID + "," + to_string(ID) + "); COMMIT;";
 
         break;
