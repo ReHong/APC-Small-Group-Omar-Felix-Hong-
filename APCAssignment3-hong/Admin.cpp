@@ -40,7 +40,7 @@ string Admin::add_course() //work in progress
 
 	string t;
 	string day;
-
+	
 	string tl1; //Times (Label)
 	string tl2;
 
@@ -64,6 +64,7 @@ string Admin::add_course() //work in progress
 	cin.ignore();
 
 	cout << endl << "Enter Course Name:";
+	cin.ignore();
 	getline(cin, T);
 
 	cout << endl << "Enter Department Section:";
@@ -114,7 +115,52 @@ string Admin::add_course() //work in progress
 
 	}
 
-	t = tl1 + ":00 - " + tl2 + ":00 " + day;
+	int timechoice = 0;
+	bool logic = true;
+
+	while (logic) //declare time 
+	{
+		cout << endl << "Choose a time End" << endl
+			<< "1. #:00" << endl
+			<< "2. #:15" << endl
+			<< "3. #:30" << endl
+			<< "4. #:45" << endl
+			<< "choice: ";
+
+		cin >> timechoice;
+
+		if ((timechoice > 4) || (timechoice <= 0)) //repeat
+		{
+			cout << endl << "**ERROR INPUT INVALID TRY AGAIN**" << endl;
+		}
+		else//end logic
+		{
+			logic = false;
+		}
+		
+	}
+
+	switch (timechoice)
+	{
+	case 1://0 min
+		t = tl1 + ":00 - " + tl2 + ":00 " + day;
+		break;
+	case 2://15 min
+		t = tl1 + ":15 - " + tl2 + ":15 " + day;
+		break;
+	case 3://30 min
+		t = tl1 + ":30 - " + tl2 + ":30 " + day;
+		break;
+	case 4://45 min
+		t = tl1 + ":45 - " + tl2 + ":45 " + day;
+		break;
+
+	default:
+		t = tl1 + ":00 - " + tl2 + ":00 " + day;
+		break;
+	}
+
+	
 
 	cout << endl << "Enter Days of the week (In order Ex. M W F): ";
 	cin >> dw;
