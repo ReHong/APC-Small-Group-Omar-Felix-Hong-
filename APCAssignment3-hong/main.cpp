@@ -503,10 +503,6 @@ int main(int argc, char** argv)
 		WHERE s.Student_ID = 10001;
 		)";
 
-	sqlite3_exec(DB, queryClasses.c_str(), callback, NULL, &messageError);
-
-	exit = sqlite3_exec(DB, queryClasses.c_str(), callback, nullptr, &messageError);
-
 	//tables are all set from above
 	/**********************************************************************************************************************************/
 
