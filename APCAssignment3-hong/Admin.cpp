@@ -40,7 +40,7 @@ string Admin::add_course() //work in progress
 
 	string t;
 	string day;
-
+	
 	string tl1; //Times (Label)
 	string tl2;
 
@@ -64,6 +64,7 @@ string Admin::add_course() //work in progress
 	cin.ignore();
 
 	cout << endl << "Enter Course Name:";
+	cin.ignore();
 	getline(cin, T);
 
 	cout << endl << "Enter Department Section:";
@@ -114,7 +115,52 @@ string Admin::add_course() //work in progress
 
 	}
 
-	t = tl1 + ":00 - " + tl2 + ":00 " + day;
+	int timechoice = 0;
+	bool logic = true;
+
+	while (logic) //declare time 
+	{
+		cout << endl << "Choose a time End" << endl
+			<< "1. #:00" << endl
+			<< "2. #:15" << endl
+			<< "3. #:30" << endl
+			<< "4. #:45" << endl
+			<< "choice: ";
+
+		cin >> timechoice;
+
+		if ((timechoice > 4) || (timechoice <= 0)) //repeat
+		{
+			cout << endl << "**ERROR INPUT INVALID TRY AGAIN**" << endl;
+		}
+		else//end logic
+		{
+			logic = false;
+		}
+		
+	}
+
+	switch (timechoice)
+	{
+	case 1://0 min
+		t = tl1 + ":00 - " + tl2 + ":00 " + day;
+		break;
+	case 2://15 min
+		t = tl1 + ":15 - " + tl2 + ":15 " + day;
+		break;
+	case 3://30 min
+		t = tl1 + ":30 - " + tl2 + ":30 " + day;
+		break;
+	case 4://45 min
+		t = tl1 + ":45 - " + tl2 + ":45 " + day;
+		break;
+
+	default:
+		t = tl1 + ":00 - " + tl2 + ":00 " + day;
+		break;
+	}
+
+	
 
 	cout << endl << "Enter Days of the week (In order Ex. M W F): ";
 	cin >> dw;
@@ -139,29 +185,6 @@ string Admin::add_course() //work in progress
 		+ ", " + cred + ", " + instructID + ");"; //related insert to the previous comment
 	//return "INSERT INTO COURSE VALUES(" + CRN + ", '" + T + "', '" + D + "', '" + t + "', '" + dw + "', '" + sem + "', " + year + ", " + instructID + ")";
 }
-
-
-/*
-//test case for using the methods for sqlite
-
-	//remove Instructor + Updating Admin
-	//suppossed remove
-	//string userInput2(test.remove_user(2));
-
-	sqlite3_stmt* stmt; //an all purpose variable for finalization and update changes
-	int id;
-	const char* sqlD = "DELETE FROM INSTRUCTOR WHERE ID = ?;"; //a way to delete and remove
-	cout << "Delete Instructor 1-6: ";
-	cin >> id;
-	id = id + 20000;
-
-	sqlite3_prepare_v2(DB, sqlD, -1, &stmt, NULL); //preparing the update
-	sqlite3_bind_int(stmt, 1, id); //change name of that row that matches with the ID number
-	sqlite3_step(stmt); //run it
-	sqlite3_finalize(stmt); //save
-	exit = sqlite3_exec(DB, userInput.c_str(), callback, NULL, NULL); //permanant save
-
-*/
 
 int Admin::remove_course(sqlite3* db)
 {
@@ -255,11 +278,6 @@ string Admin::add_user(sqlite3* db)
 		cin >> o;
 	}
 
-	//probably and most definetely will need to update and fix this for futureproofing
-
-		//sample insert: "INSERT INTO ADMIN VALUES(30001, 'Margaret', 'Hamilton', 'President', 'Dobbs 1600', 'hamiltonm');"
-					   //"INSERT INTO INSTRUCTOR VALUES(20001, 'Joseph', 'Fourier', 'Full Prof.', 1820, 'BSEE', 'fourierj');"
-					   //"INSERT INTO STUDENT VALUES(10001, 'Isaac', 'Newton', 1668, 'BSAS', 'newtoni');"
 	switch (user)
 	{
 	case 1: //admin

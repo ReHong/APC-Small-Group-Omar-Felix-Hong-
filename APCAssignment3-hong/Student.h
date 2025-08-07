@@ -16,8 +16,6 @@ public:
 	string print_schedule(int ID);
 	//string check_confliction();  Now within the add_remove_course function
 
-
-
 	//Destructor
 	~Student();
 

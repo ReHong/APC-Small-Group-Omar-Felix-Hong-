@@ -16,14 +16,6 @@ using std::ifstream;  //read data from a file
 
 using namespace std;
 
-
-/*************************************************************************************************
- The callback() function is invoked for each result row coming out of the evaluated SQL statement
- 1st argument - the 4th argument provided by sqlite3_exec() and is typically not used
- 2nd argument - number of columns in the result
- 3rd argument - an array of strings containing the fields in that row
- 4th argument - an array of strings containing the names of the columns
-*************************************************************************************************/
 static int callback(void* data, int argc, char** argv, char** azColName)
 {
 	int i;
@@ -158,25 +150,8 @@ void admin_ui(sqlite3* db, int myID) //made by Hong inspired by Omar
 
 	int exit;
 
-	//open the database
-
 	//Admin(string first, string last, int ID, string e, string t, string o) : User(first, last, ID, e)
 	Admin adctrl("Admin", "Astrator", myID, "astratora", "trap", "reddit"); //control admin
-
-	/*
-	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
-		<< "1. Search Course (Default)" << endl
-		<< "2. Search Course (by Parameters)" << endl
-		<< "3. Add Course" << endl
-		<< "4. Remove Course" << endl
-		<< "5. Add User" << endl
-		<< "6. Remove User" << endl
-		<< "7. Change Instructor to Course" << endl
-		<< "8. Add/Remove student from Course" << endl << endl
-		<< "Choice: " << endl;
-
-	cin >> sqlcommands;
-	*/
 
 	while (loop)
 	{
@@ -313,21 +288,6 @@ void student_ui(sqlite3* db, int myID) //made by Hong in prep for Felix
 	//Student(string first, string last, int ID, string e, int g, string m) : User(first, last, ID, e)
 	Student stuctrl("Student", "Student", myID, "student@wit.edu", 4, "reddit"); //control admin
 
-	/*
-	cout << "** ADMIN CONTROLS SELECT YOUR CONTROLS ** " << endl << endl
-		<< "1. Search Course (Default)" << endl
-		<< "2. Search Course (by Parameters)" << endl
-		<< "3. Add Course" << endl
-		<< "4. Remove Course" << endl
-		<< "5. Add User" << endl
-		<< "6. Remove User" << endl
-		<< "7. Change Instructor to Course" << endl
-		<< "8. Add/Remove student from Course" << endl << endl
-		<< "Choice: " << endl;
-
-	cin >> sqlcommands;
-	*/
-
 	while (loop)
 	{
 		cout << "** WELCOME BACK SELECT YOUR CONTROLS ** " << endl << endl
@@ -419,14 +379,6 @@ int main(int argc, char** argv)
 
 	exit = sqlite3_exec(DB, tableADMIN.c_str(), nullptr, nullptr, &messageError);
 
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Create Table" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-		cout << "Table created Successfully" << std::endl;
-
 	string tableInstructor = "CREATE TABLE IF NOT EXISTS INSTRUCTOR(" //database Instructor table
 		"ID INTEGER PRIMARY KEY, "
 		"NAME TEXT NOT NULL, "
@@ -438,14 +390,6 @@ int main(int argc, char** argv)
 
 	exit = sqlite3_exec(DB, tableInstructor.c_str(), nullptr, nullptr, &messageError);
 
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Create Table" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-		cout << "Table created Successfully" << std::endl;
-
 	string tableStudent = "CREATE TABLE IF NOT EXISTS STUDENT("  //database Student table
 		"ID INTEGER PRIMARY KEY, "
 		"NAME TEXT NOT NULL, "
@@ -455,14 +399,6 @@ int main(int argc, char** argv)
 		"EMAIL TEXT NOT NULL); ";
 
 	exit = sqlite3_exec(DB, tableStudent.c_str(), nullptr, nullptr, &messageError);
-
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Create Table" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-		cout << "Table created Successfully" << std::endl;
 
 	sqlite3_exec(DB, "DROP TABLE IF EXISTS COURSE;", nullptr, nullptr, &messageError);
 
@@ -483,16 +419,6 @@ int main(int argc, char** argv)
 
 	exit = sqlite3_exec(DB, tableCourse.c_str(), NULL, 0, &messageError);
 
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Create Table" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-	{
-		cout << "Table created Successfully" << std::endl;
-	}
-
 	string tableSchedule = "CREATE TABLE IF NOT EXISTS SCHEDULE("
 		"Course_ID INTEGER, "
 		"Student_ID INTEGER, "
@@ -502,16 +428,6 @@ int main(int argc, char** argv)
 		");";
 
 	exit = sqlite3_exec(DB, tableSchedule.c_str(), NULL, 0, &messageError);
-
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error Create Table" << std::endl;
-		sqlite3_free(messageError);
-	}
-	else
-	{
-		cout << "Table created Successfully" << std::endl;
-	}
 
 	//Omar's portion of the code with the logins (cleaned up in order by Hong)
 	string tableLogin = R"(
@@ -524,15 +440,6 @@ int main(int argc, char** argv)
 	)";
 
 	exit = sqlite3_exec(DB, tableLogin.c_str(), nullptr, nullptr, &messageError);
-
-
-	if (exit != SQLITE_OK) {
-		cerr << "Error creating LOGIN table: " << messageError << '\n';
-		sqlite3_free(messageError);
-	}
-	else {
-		cout << "LOGIN table created successfully\n";
-	}
 
 	const char* seedLogin = //default loggins
 		"INSERT OR IGNORE INTO LOGIN VALUES "
@@ -577,8 +484,6 @@ int main(int argc, char** argv)
 		"('luuh','MysoultoWIT2022','STUDENT',10020);"
 		;
 
-	//for all logins made by Hong
-	//failed because I have no idea how
 	string email;
 	string password = "MysoultoWIT2022";
 	string role;
@@ -589,17 +494,7 @@ int main(int argc, char** argv)
 	const char* ins = "SELECT EMAIL, ID FROM INSTRUCTOR WHERE ID = ?;";
 	const char* adm = "SELECT EMAIL, ID FROM ADMIN WHERE ID = ?;";
 
-
-
-
 	exit = sqlite3_exec(DB, seedLogin, nullptr, nullptr, &messageError);
-	if (exit != SQLITE_OK) {
-		cerr << "Seeding LOGIN failed: " << messageError << '\n';
-		sqlite3_free(messageError);
-	}
-	else {
-		cout << "Seed table created successfully\n";
-	}
 
 	string queryClasses = R"(
 		SELECT c.CRN, c.TITLE
@@ -607,20 +502,6 @@ int main(int argc, char** argv)
 		JOIN SCHEDULE s ON c.CRN = s.Course_ID
 		WHERE s.Student_ID = 10001;
 		)";
-
-	sqlite3_exec(DB, queryClasses.c_str(), callback, NULL, &messageError);
-
-	exit = sqlite3_exec(DB, queryClasses.c_str(), callback, nullptr, &messageError);
-
-	if (exit != SQLITE_OK)
-	{
-		std::cerr << "Error running query: " << messageError << endl;
-		sqlite3_free(messageError);
-	}
-	else
-	{
-		cout << "Query Sucess Implementation" << std::endl;
-	}
 
 	//tables are all set from above
 	/**********************************************************************************************************************************/
@@ -643,12 +524,13 @@ int main(int argc, char** argv)
 	// Login/logout loop --> made by Omar
 	while (true) {
 		string username;
-		cout << "Username (Q to quit): ";
+		cout << "**Welcome To Leopard Web** " << endl;
+		cout << "Enter Username (Q to quit): ";
 		cin >> username;
 		if (username == "Q") break;
 
 		string password;
-		cout << "Password: ";
+		cout << "Enter Password: ";
 		cin >> password;
 
 		sqlite3_stmt* stmt;
@@ -685,4 +567,5 @@ int main(int argc, char** argv)
 	sqlite3_close(DB);
 	return 0;
 }
+
 
